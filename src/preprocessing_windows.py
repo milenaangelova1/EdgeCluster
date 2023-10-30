@@ -1,6 +1,6 @@
 # All functions that will be used for preprocessing the data, 
 # it will be added here.
-from pandas import DataFrame, read_csv
+import pandas as pd
 import os
 from itertools import product
 
@@ -17,25 +17,31 @@ def syntethic(num_dimentions=2, num_streams=3, num_windows=10):
 
     windows = []
     windows_metrics = []
+    clustering = []
 
-    stream_segment_combinations = product(list(range(1,num_streams)), list(range(num_windows)))
     
-    for num_stream, num_segment in stream_segment_combinations:
-        df = read_csv(os.path.join(os.path.dirname(__file__), f'../data/syntethic/{num_dimentions}/seed_75_stream_{num_stream}_segment_{num_segment}_createdelete=False.csv'))
-        windows.append({
-            'data': df,
-            'segment': num_segment,
-            'stream': num_stream})
-
-    for window in windows:
-        windows_metrics.append(calculate_hyper_rectangle_features(window))
+    # read the data 
+    for stream in range(1, num_streams):
+        dfs = []
+        for segment in range(num_windows):
+            dfs.append(pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'syntethic', f'{num_dimentions}-dim', f'seed_75_stream_{stream}_segment_{segment}_createdelete=False.csv')))
+    
+        clustering.append({
+            'data': pd.concat(dfs),
+            'stream': stream
+        })
+    
+    # find the high, low and mean vectors of each dataframe
+    clustering_metrics = calculate_hyper_rectangle_features(clustering)
 
     # calculate the high, low and mean of each window    
     # save the data somewhere as files
+
     return {
-        "windows": windows,
-        "initial_clustering_metrics": windows_metrics
+        "clustering": clustering,
+        "clustering_metrics": clustering_metrics
     }
+
 
 def ampds():
     """

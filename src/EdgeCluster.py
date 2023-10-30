@@ -5,6 +5,8 @@ class EdgeCluster:
     """
     Edge Cluster Algorithm
     """
+    def __init__(self) -> None:
+        pass
 
     def fit(self, window:dict, initial_clustering:list):
         """

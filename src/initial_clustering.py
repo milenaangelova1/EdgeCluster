@@ -1,12 +1,12 @@
 # All functions that will be used for preprocessing the data, 
 # it will be added here.
-from pandas import DataFrame, read_csv
 import os
 from itertools import product
+import pandas as pd
 
 from src.utils import calculate_hyper_rectangle_features
 
-def syntethic(num_dimentions=2, num_stream=0, num_segments=10):
+def syntethic(num_dimentions=2, num_streams=0, num_segments=10):
     """
     Preprocessing the syntethic data. The data is presented in 2 or 8 dimentional data
 
@@ -14,27 +14,26 @@ def syntethic(num_dimentions=2, num_stream=0, num_segments=10):
 
     :returns: pre-processed syntethic data
     """
-    initial_clustering = []
-    initial_clustering_metrics = []
-    
+    dfs = []
+    clustering = []
     # read the data 
     for num_segment in range(num_segments):
-        df = read_csv(os.path.join(os.path.dirname(__file__), f'../data/syntethic/{num_dimentions}/seed_75_stream_{num_stream}_segment_{num_segment}_createdelete=False.csv'))
-        initial_clustering.append({
-            'data': df,
-            'segment': num_segment,
-            'stream': num_stream})
+        dfs.append(pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'syntethic', f'{num_dimentions}-dim', f'seed_75_stream_{num_streams}_segment_{num_segment}_createdelete=False.csv')))
+    
+    clustering.append({
+        'data': pd.concat(dfs),
+        'stream': num_streams
+    })
     
     # find the high, low and mean vectors of each dataframe
-    for cluster in initial_clustering:
-        initial_clustering_metrics.append(calculate_hyper_rectangle_features(cluster))
+    initial_clustering_metrics = calculate_hyper_rectangle_features(clustering)
 
     # calculate the high, low and mean of each window    
     # save the data somewhere as files
 
     return {
-        "initial_clustering": initial_clustering,
-        "initial_clustering_metrics": initial_clustering_metrics
+        "clustering": clustering,
+        "clustering_metrics": initial_clustering_metrics
     }
 
 def ampds():

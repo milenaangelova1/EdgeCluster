@@ -18,7 +18,7 @@ def dist(vector1: list, vector2: list) -> float:
 
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
 
-def calculate_hyper_rectangle_features(cluster: dict) -> dict:
+def calculate_hyper_rectangle_features(clustering: list) -> dict:
     """
     This method will calculate three vectors.
      - highs: vector of all max values in the current window
@@ -26,35 +26,37 @@ def calculate_hyper_rectangle_features(cluster: dict) -> dict:
      - means: a vector of all mean values that are found from the vectors above (between highs and lows)
 
     :param:
-        cluster (dict) - dictionary that has the following information:
+        clustering (dict) - dictionary that has the following information:
         {
             "data" - real clustering,
-            "segment" - which data segment,
             "stream" - which stream
         }
 
     :returns:
-        a dict with three vectors: highs, lows, and means, and returns information about which stream and segment is.
-        keys: high, low, mean, stream, segment
-        values: vectors (ndarrays)
+        a list of clusters: each cluster is represented by three vectors: highs, lows, and means, cluster's label and which stream is.
+        keys: high, low, mean, cluster_label, stream
     """
-    if cluster.data.empty:
-        raise ValueError("The dataset is empty!")
-    
-    highs = cluster.data.max()
-    lows = cluster.data.min()
-    means = (highs + lows) / 2
+    list_clusters = []
+    for cluster in clustering:
+        df = cluster['data']
+        cluster_labels = df['cluster'].unique()
+        clusters = []
+        for label in cluster_labels:
+            c = df[df['cluster'] == label]
 
-    return {
-        "high": np.array(highs), 
-        "low": np.array(lows),
-        "mean": np.array(means),
-        "stream": cluster['stream'],
-        "segment": cluster['segment']
-    }
+            highs = c.max()
+            lows = c.min()
+            means = (highs + lows) / 2
 
-def merge_clusters():
-    pass
+            clusters.append({
+                "high": np.array(highs), 
+                "low": np.array(lows),
+                "mean": np.array(means),
+                "cluster_label": label,
+                "stream": cluster['stream']
+            })
+        list_clusters.append(clusters)
+    return list_clusters
 
 def recalculate_window_params(c: dict, w: dict) -> dict:
     """
