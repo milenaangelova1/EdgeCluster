@@ -9,8 +9,10 @@ def experiment_synthetic_data():
 
     list_of_windows = syntethic()
     initial_clustering = syntethic()
+    clustering_all_windows = []
+
     for window in list_of_windows:
-        EdgeCluster().fit(window, initial_clustering)
+        clustering_all_windows.append(EdgeCluster().fit(window, initial_clustering))
 
 def experiment_ampds2_data():
     """
