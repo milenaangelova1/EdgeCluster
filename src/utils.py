@@ -18,7 +18,7 @@ def dist(vector1: list, vector2: list) -> float:
 
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
 
-def __calculate_hyper_rectangle_features(df: pd.DataFrame) -> dict:
+def calculate_hyper_rectangle_features(cluster: dict) -> dict:
     """
     This method will calculate three vectors.
      - highs: vector of all max values in the current window
@@ -26,43 +26,32 @@ def __calculate_hyper_rectangle_features(df: pd.DataFrame) -> dict:
      - means: a vector of all mean values that are found from the vectors above (between highs and lows)
 
     :param:
-        window - a dataframe that contains the current data (window)
+        cluster (dict) - dictionary that has the following information:
+        {
+            "data" - real clustering,
+            "segment" - which data segment,
+            "stream" - which stream
+        }
 
     :returns:
-        a dict with three vectors inside: highs, lows, and means
-        keys: high, low, mean
+        a dict with three vectors: highs, lows, and means, and returns information about which stream and segment is.
+        keys: high, low, mean, stream, segment
         values: vectors (ndarrays)
     """
-    if df.empty:
+    if cluster.data.empty:
         raise ValueError("The dataset is empty!")
     
-    highs = df.max()
-    lows = df.min()
+    highs = cluster.data.max()
+    lows = cluster.data.min()
     means = (highs + lows) / 2
 
     return {
         "high": np.array(highs), 
         "low": np.array(lows),
-        "mean": np.array(means)
+        "mean": np.array(means),
+        "stream": cluster['stream'],
+        "segment": cluster['segment']
     }
-
-def get_data_windows(df:pd.DataFrame):
-    """
-    Data windows represented like a list of windows.
-    Each window will be a list of three vectors: high, low, and mean.
-
-    :param: df - data that needs to be presented as a window
-    """
-    if df.empty:
-        raise ValueError("The data frame is empty!")
-    return __calculate_hyper_rectangle_features(df)
-
-
-def get_initial_clustering(df: pd.DataFrame):
-    """
-    A list of clusters
-    """
-    pass
 
 def merge_clusters():
     pass
@@ -106,4 +95,7 @@ def find_the_closest_cluster(w: dict, C: list) -> dict:
             "cluster": c
         })
     return pprint(sorted(results, key=lambda x: x['dist'], reverse=False))['cluster']
+
+def write_data_to_csv(filename, data):
+    pass
     
