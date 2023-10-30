@@ -89,10 +89,12 @@ def find_the_closest_cluster(w: dict, C: list) -> dict:
     :return: the closest cluster
     """
     results = []
-    for c in C:
+    for c, stream, segment in C['data'], C['stream'], C['segment']:
         results.append({
             "dist": dist(w, c),
-            "cluster": c
+            "window": w,
+            "stream": stream,
+            "segment": segment
         })
     return pprint(sorted(results, key=lambda x: x['dist'], reverse=False))['cluster']
 
