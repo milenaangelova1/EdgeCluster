@@ -1,4 +1,4 @@
-from utils import dist, recalculate_window_params, find_the_closest_cluster, update_initial_clustering
+from utils import dist, recalculate_window_params, find_the_closest_cluster, update_initial_clustering, compare_dicts
 
 
 class EdgeCluster:
@@ -30,7 +30,7 @@ class EdgeCluster:
             # find and change the cluster into initial clustering solution
             update_initial_clustering(cluster, initial_clustering)
             for j in initial_clustering:
-                if cluster != j:
+                if not compare_dicts(cluster, j):
                     if (dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['high']) <= dist(j['mean'], j['high'])):
                         # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
                         # merge clusters c and j. Merging will be union
