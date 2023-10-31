@@ -1,10 +1,8 @@
 import pandas as pd
 import numpy as np
-from pprint import pprint
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import json
 
 def dist(vector1: list, vector2: list) -> float:
     """
