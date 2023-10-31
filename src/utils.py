@@ -155,6 +155,6 @@ def preprocess_metrics(list_of_clusters):
 
 def compare_dicts(dict1: dict, dict2: dict):
     flag = False
-    if dict1['high'] == dict2['high'] and dict1['low'] == dict2['low'] and dict1['mean'] == dict2['mean'] and dict1['cluster'] == dict2['cluster'] and dict1['stream'] == dict2['stream']:
+    if np.array_equal(dict1['high'],dict2['high']) and np.array_equal(dict1['low'],dict2['low']) and np.array_equal(dict1['mean'], dict2['mean']) and dict1['cluster'] == dict2['cluster'] and dict1['stream'] == dict2['stream']:
         flag = True
     return flag
