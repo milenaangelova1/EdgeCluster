@@ -1,5 +1,5 @@
-from utils import dist, recalculate_window_params, find_the_closest_cluster, update_initial_clustering, compare_dicts
-
+from utils import dist, recalculate_window_params, find_the_closest_cluster, update_initial_clustering, compare_dicts, draw_graph, remove_cluster_from_clustering
+import pandas as pd
 
 class EdgeCluster:
     """
@@ -17,6 +17,15 @@ class EdgeCluster:
                 Each tuple contains the high, low, and mean vectors.
         """
         cluster = find_the_closest_cluster(window, initial_clustering)
+        draw_graph(pd.DataFrame(), 
+                   df_metrics=[cluster], 
+                   window_metrics=[window], 
+                   filename=f'cluster_{cluster["cluster"]}_stream_{cluster["stream"]}_window_stream_{window["stream"]}_segment_{window["segment"]}',
+                   title='A window and the closest cluster to it: high, low and mean vectors',
+                   xaxis_label='Feature 1',
+                   yaxis_label='Feature 2',
+                   num_dimentions=2, 
+                   color_pallete='tab10')
         if dist(cluster['mean'], window['mean']) > (dist(cluster['low'], cluster['mean']) + dist(window['mean'], window['high'])):
             # D(m_i, m_w) > (D(l_i, m_i) + D(m_w, h_w))
             return initial_clustering
@@ -27,15 +36,15 @@ class EdgeCluster:
             # (D(l_i, m_i) >= D(m_i, m_w)) or (D(m_i, m_w) <= D(m_w, h_w))
             # merging c and w and recalculating the window - low, high, and mean vectors.
             cluster = recalculate_window_params(cluster, window)
-           
             for j in initial_clustering:
-                if not compare_dicts(cluster, j):
+                if cluster['cluster'] != j['cluster']:
                     if (dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['high']) <= dist(j['mean'], j['high'])):
                         # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
                         # merge clusters c and j. Merging will be union
                         cluster = recalculate_window_params(cluster, window)
-            # find and change the cluster into initial clustering solution
-            update_initial_clustering(cluster, initial_clustering)
+                        # find and change the cluster into initial clustering solution
+                        update_initial_clustering(cluster, initial_clustering)
+                        remove_cluster_from_clustering(initial_clustering, cluster_for_removing = j)
         elif (dist(cluster['low'], cluster['mean']) < dist(cluster['mean'], window['mean'])) and (dist(cluster['mean'], window['mean']) > dist(window['mean'], window['high'])):
             # (D(l_i, m_i) < D(m_i, m_w)) and (D(m_i, m_w) > D(m_w, h_w))
             # merge c with w
