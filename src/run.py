@@ -2,7 +2,7 @@ from EdgeCluster import EdgeCluster
 import initial_clustering as ic
 import preprocessing_windows as pw
 from utils import draw_graph
-import pandas as pd
+from utils import get_label
 
 def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, num_windows=10):
     """
@@ -20,24 +20,25 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                yaxis_label='Feature 2', 
                num_dimentions=num_dimentions, 
                color_pallete='tab10')
+    
     # keep all the clustering solutions
     # the latest one is the final one
-    clustering_windows = []
+    list_of_clustering_solutions = []
 
     offline_clustering = initial_clustering['clustering_metrics']
     for index, window in enumerate(list_of_windows['clustering_metrics']):
         clustering = EdgeCluster().fit(window, offline_clustering)
-        draw_graph(df = pd.DataFrame(), 
-               df_metrics = clustering,
+        draw_graph(df = initial_clustering['clustering'][0]['data'], 
+               df_metrics = clustering['clustering'],
                window_metrics=[window],
-               filename='initial_clustering', 
-               title=f'Clustering of {num_dimentions}-dim data for iteration {index}', 
+               filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
+               title=f'Clustering of {num_dimentions}-dim data for window {index + 1}', 
                xaxis_label='Feature 1', 
                yaxis_label='Feature 2', 
                num_dimentions=num_dimentions, 
                color_pallete='tab10')
-        clustering_windows.append(clustering)
-    return clustering_windows
+        list_of_clustering_solutions.append(clustering)
+    return list_of_clustering_solutions
 
 def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):
     """

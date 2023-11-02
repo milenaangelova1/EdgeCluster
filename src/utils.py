@@ -126,7 +126,10 @@ def write_data_to_csv(filename, data):
 def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, num_dimentions: str, color_pallete: str):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
     plt.rcParams["figure.autolayout"] = True
-    
+    plt.clf()
+
+    if df_metrics.empty():
+        return
     highs, lows, means, clusters = preprocess_metrics(df_metrics)
     if not df.empty:
         data = df.values
@@ -159,10 +162,14 @@ def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, titl
     plt.title(title)
    
     plt.savefig(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', f'{filename}.png'))
+    plt.ioff()
 
 def preprocess_metrics(list_of_clusters):
     highs, lows, means, clusters = [], [], [], []
-   
+    
+    if not list_of_clusters:
+        return
+    
     for cluster in list_of_clusters:
         highs.append(pd.DataFrame({"0": [cluster['high'][0]], "1": [cluster['high'][1]]}))
         lows.append(pd.DataFrame({"0": [cluster['low'][0]], "1": [cluster['low'][1]]}))
@@ -195,3 +202,13 @@ def calculate_points(higher_point: dict, lower_point: dict):
     point_3 = [point_1[0], point_2[1]]
     point_4 = [point_2[0], point_1[1]]
     return point_1, point_2, point_3, point_4
+
+def get_label(clustering):
+    label = ''
+    if clustering['changes']['deviations']:
+        label += 'deviations'
+    elif clustering['changes']['merges']:
+        label += '_merges'
+    elif clustering['changes']['matches']:
+        label += '_matches'
+    return label

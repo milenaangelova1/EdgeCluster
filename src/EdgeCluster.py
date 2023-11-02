@@ -16,40 +16,67 @@ class EdgeCluster:
         :param: initial_clustring - a list of dicts. It represents the offline clustering (initial clustering). 
                 Each tuple contains the high, low, and mean vectors.
         """
+        matches, deviations, merges = [], [], []
         cluster = find_the_closest_cluster(window, initial_clustering)
-        draw_graph(pd.DataFrame(), 
-                   df_metrics=[cluster], 
-                   window_metrics=[window], 
-                   filename=f'cluster_{cluster["cluster"]}_stream_{cluster["stream"]}_window_stream_{window["stream"]}_segment_{window["segment"]}',
-                   title='A window and the closest cluster to it: high, low and mean vectors',
-                   xaxis_label='Feature 1',
-                   yaxis_label='Feature 2',
-                   num_dimentions=2, 
-                   color_pallete='tab10')
         if dist(cluster['mean'], window['mean']) > (dist(cluster['low'], cluster['mean']) + dist(window['mean'], window['high'])):
             # D(m_i, m_w) > (D(l_i, m_i) + D(m_w, h_w))
-            return initial_clustering
-        elif (dist(cluster['mean'], window['mean']) < dist(cluster['low'], cluster['mean'])) and (dist(cluster['mean'], window['mean']) < dist(window['mean'], window['high'])) and dist(cluster['high'], cluster['low']) > dist(window['high'], window['low']):
+            deviations.append({
+                "closed_cluster": cluster,
+                "window": window
+            })
+            return {
+                "clustering":initial_clustering, 
+                "closed_cluster": cluster, 
+                "changes": {
+                    "deviations": deviations,
+                    "matches": matches,
+                    "merges": merges
+                },
+                "window": window
+            }
+        elif (dist(cluster['mean'], window['mean']) < dist(cluster['low'], cluster['mean'])) and (dist(cluster['mean'], window['mean']) < dist(window['mean'], window['high'])):
             # (D(m_i, m_w) < D(l_i, m_i)) and (D(m_i, m_w) < D(m_w, h_w))
-            return initial_clustering
+            matches.append(cluster['cluster'])
+            return {
+                "clustering":initial_clustering, 
+                "closed_cluster": cluster, 
+                "changes": {
+                    "deviations": deviations,
+                    "matches": matches,
+                    "merges": merges
+                },
+                "window": window
+            }
         elif (dist(cluster['low'], cluster['mean']) >= dist(cluster['mean'], window['mean'])) or (dist(cluster['mean'], window['mean']) <= dist(window['mean'], window['high'])):
             # (D(l_i, m_i) >= D(m_i, m_w)) or (D(m_i, m_w) <= D(m_w, h_w))
             # merging c and w and recalculating the window - low, high, and mean vectors.
             cluster = recalculate_window_params(cluster, window)
             for j in initial_clustering:
-                if cluster['cluster'] != j['cluster']:
-                    if (dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['high']) <= dist(j['mean'], j['high'])):
+                if cluster['cluster'] != j['cluster'] and (dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['high']) <= dist(j['mean'], j['high'])):
                         # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
                         # merge clusters c and j. Merging will be union
                         cluster = recalculate_window_params(cluster, window)
                         # find and change the cluster into initial clustering solution
                         update_initial_clustering(cluster, initial_clustering)
                         remove_cluster_from_clustering(initial_clustering, cluster_for_removing = j)
+                        merges.append(j['cluster'])
         elif (dist(cluster['low'], cluster['mean']) < dist(cluster['mean'], window['mean'])) and (dist(cluster['mean'], window['mean']) > dist(window['mean'], window['high'])):
             # (D(l_i, m_i) < D(m_i, m_w)) and (D(m_i, m_w) > D(m_w, h_w))
             # merge c with w
             # the merging will be union between both
-            initial_clustering = initial_clustering.add(window)
-        return initial_clustering        
+            sorted_results = sorted(initial_clustering, key=lambda x: x['cluster'], reverse=True)
+            window['cluster'] = sorted_results[0]['cluster'] + 1
+            initial_clustering.append(window)
+
+        return {
+            "clustering":initial_clustering, 
+            "closed_cluster": cluster, 
+            "changes": {
+                "deviations": deviations,
+                "matches": matches,
+                "merges": merges
+            },
+            "window": window
+        }
 
 
