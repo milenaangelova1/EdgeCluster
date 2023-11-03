@@ -206,12 +206,12 @@ def calculate_points(higher_point: dict, lower_point: dict):
 
 def get_label(clustering):
     label = ''
-    if clustering['changes']['deviations']:
-        label += 'deviations'
+    if clustering['changes']['deviated']:
+        label += 'deviated'
     elif clustering['changes']['merges']:
         label += '_merges'
-    elif clustering['changes']['matches']:
-        label += '_matches'
+    elif clustering['changes']['matched']:
+        label += '_matched'
     return label
 
 def summary(final_clustering):
@@ -222,7 +222,8 @@ def summary(final_clustering):
     window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream']])
     window_df.columns = ['window high', 'window low', 'window mean', 'window label', 'window stream']
 
-    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviates', 'which clusters are matched', 'which clusters are merged']])
+    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges']])
+    changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster']
 
     df = pd.concat([cluster_df, window_df, changes_df], axis=1)
     return df

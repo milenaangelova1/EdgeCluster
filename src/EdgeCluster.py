@@ -16,33 +16,30 @@ class EdgeCluster:
         :param: initial_clustring - a list of dicts. It represents the offline clustering (initial clustering). 
                 Each tuple contains the high, low, and mean vectors.
         """
-        matches, deviations, merges = [], [], []
+        matched, deviated, merges = False, False, []
         cluster = find_the_closest_cluster(window, initial_clustering)
         if dist(cluster['mean'], window['mean']) > (dist(cluster['low'], cluster['mean']) + dist(window['mean'], window['high'])):
             # D(m_i, m_w) > (D(l_i, m_i) + D(m_w, h_w))
-            deviations.append({
-                "closed_cluster": cluster,
-                "window": window
-            })
+            deviated = True
             return {
                 "clustering":initial_clustering, 
                 "closed_cluster": cluster, 
                 "changes": {
-                    "deviations": deviations,
-                    "matches": matches,
+                    "deviated": deviated,
+                    "matched": matched,
                     "merges": merges
                 },
                 "window": window
             }
         elif (dist(cluster['mean'], window['mean']) < dist(cluster['low'], cluster['mean'])) and (dist(cluster['mean'], window['mean']) < dist(window['mean'], window['high'])):
             # (D(m_i, m_w) < D(l_i, m_i)) and (D(m_i, m_w) < D(m_w, h_w))
-            matches.append(cluster['cluster'])
+            matched = True
             return {
                 "clustering":initial_clustering, 
                 "closed_cluster": cluster, 
                 "changes": {
-                    "deviations": deviations,
-                    "matches": matches,
+                    "deviated": deviated,
+                    "matched": matched,
                     "merges": merges
                 },
                 "window": window
@@ -72,8 +69,8 @@ class EdgeCluster:
             "clustering":initial_clustering, 
             "closed_cluster": cluster, 
             "changes": {
-                "deviations": deviations,
-                "matches": matches,
+                "deviated": deviated,
+                "matched": matched,
                 "merges": merges
             },
             "window": window
