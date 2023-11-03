@@ -1,8 +1,7 @@
 from EdgeCluster import EdgeCluster
 import initial_clustering as ic
 import preprocessing_windows as pw
-from utils import draw_graph
-from utils import get_label
+from utils import draw_graph, get_label, summary, write_to_csv
 
 def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, num_windows=10):
     """
@@ -27,7 +26,10 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
 
     offline_clustering = initial_clustering['clustering_metrics']
     for index, window in enumerate(list_of_windows['clustering_metrics']):
+        print(f"Start processing a window {index}")
         clustering = EdgeCluster().fit(window, offline_clustering)
+        print(f"The EdgeCluster completed for a window {index}")
+        print(f"Start plotting a graph for a window {index}")
         draw_graph(df = initial_clustering['clustering'][0]['data'], 
                df_metrics = clustering['clustering'],
                window_metrics=[window],
@@ -37,7 +39,12 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                yaxis_label='Feature 2', 
                num_dimentions=num_dimentions, 
                color_pallete='tab10')
+        print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
+        print(f"Summary for a window {index}")
+        df = summary(clustering)
+        print(f"Write a csv for a window {index}")
+        write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', data=df, num_dimentions=num_dimentions)
     return list_of_clustering_solutions
 
 def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):

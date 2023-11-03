@@ -6,7 +6,7 @@ from itertools import product
 
 from src.utils import calculate_hyper_rectangle_features
 
-def syntethic(num_dimentions=2, num_streams=3, num_windows=10, batch_size=10):
+def syntethic(num_dimentions=2, num_streams=3, num_windows=10, batch_size=1000):
     """
     Preprocessing the syntethic data. The data is presented in 2 or 8 dimentional data
 

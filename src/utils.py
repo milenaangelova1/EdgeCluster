@@ -119,16 +119,17 @@ def remove_cluster_from_clustering(initial_clustering, cluster_for_removing):
     index = next((index for (index, d) in enumerate(initial_clustering) if d["cluster"] == cluster_for_removing['cluster']), None)
     del initial_clustering[index]
 
-def write_data_to_csv(filename, data):
-    pass
-
+def write_to_csv(filename, data, num_dimentions):
+    if data.empty:
+        return
+    data.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{filename}.csv'), index=False, sep=',')
 
 def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, num_dimentions: str, color_pallete: str):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.clf()
 
-    if df_metrics.empty():
+    if len(df_metrics) == 0:
         return
     highs, lows, means, clusters = preprocess_metrics(df_metrics)
     if not df.empty:
@@ -161,7 +162,7 @@ def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, titl
     plt.ylabel(yaxis_label)
     plt.title(title)
    
-    plt.savefig(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', f'{filename}.png'))
+    plt.savefig(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', 'plots', f'{filename}.png'))
     plt.ioff()
 
 def preprocess_metrics(list_of_clusters):
@@ -212,3 +213,16 @@ def get_label(clustering):
     elif clustering['changes']['matches']:
         label += '_matches'
     return label
+
+def summary(final_clustering):
+
+    cluster_df = pd.json_normalize(final_clustering['closed_cluster'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
+    cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster stream']
+
+    window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream']])
+    window_df.columns = ['window high', 'window low', 'window mean', 'window label', 'window stream']
+
+    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviates', 'which clusters are matched', 'which clusters are merged']])
+
+    df = pd.concat([cluster_df, window_df, changes_df], axis=1)
+    return df
