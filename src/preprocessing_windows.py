@@ -23,35 +23,21 @@ def syntethic(num_dimentions=2, num_streams=3, num_windows=10, batch_size=1000):
 
             for index in range(0, df.shape[0], batch_size):
                 new_df = df.iloc[index:index + batch_size, :]
-                clustering.append({
+                cluster_metrics = calculate_hyper_rectangle_features(df)
+                cluster_metrics['stream'] = stream
+                cluster_metrics['segment'] = segment
+                
+            clustering.append({
+                "cluster": {
                     'data': new_df.drop(['cluster'], axis=1),
                     'stream': stream,
                     'segment': segment,
                     'target': new_df['cluster']
-                })
-            clustering.append({
-                'data': df.drop(['cluster'], axis=1),
-                'stream': stream,
-                'segment': segment,
-                'target': df['cluster']
+                },
+                "cluster_metrics": cluster_metrics
             })
-    
-    list_clusters_with_metrics = []
-    for cluster in clustering:
-        df = cluster['data']
-        # find the high, low and mean vectors of each dataframe
-        cluster_metrics = calculate_hyper_rectangle_features(df)
-        cluster_metrics['stream'] = cluster['stream']
-        cluster_metrics['segment'] = cluster['segment']
-        list_clusters_with_metrics.append(cluster_metrics)
 
-    # calculate the high, low and mean of each window    
-    # save the data somewhere as files
-
-    return {
-        "clustering": clustering,
-        "clustering_metrics": list_clusters_with_metrics
-    }
+    return clustering
 
 
 def ampds():

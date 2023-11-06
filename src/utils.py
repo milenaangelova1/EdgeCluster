@@ -94,13 +94,6 @@ def find_the_closest_cluster(w: dict, C: list) -> dict:
         "cluster": c,
         "dist": min_dist
     })
-    segment = w['segment']
-    stream = w['stream']
-    
-    # TODO: write the results in json or csv file
-    # with open(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'closed_cluster_segment_{segment}_stream_{stream}.json'), 'w') as f:
-    #     dump = json.dumps(sorted_results, cls=NumpyEncoder)
-    #     json.dump(dump, f)
    
     return min_dist
 
@@ -227,3 +220,15 @@ def summary(final_clustering):
 
     df = pd.concat([cluster_df, window_df, changes_df], axis=1)
     return df
+
+def convert_to_df(list_of_dicts: list):
+    if len(list_of_dicts) == 0:
+        return pd.DataFrame()
+    result = [item['cluster']['data'] for item in list_of_dicts]
+    return pd.concat(result)
+
+def convert_to_list(list_of_dicts: list):
+    if len(list_of_dicts) == 0:
+        return pd.DataFrame()
+    return [item['cluster_metrics'] for item in list_of_dicts]
+
