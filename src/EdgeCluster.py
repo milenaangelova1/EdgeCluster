@@ -1,5 +1,4 @@
-from utils import dist, recalculate_window_params, find_the_closest_cluster, update_initial_clustering, compare_dicts, draw_graph, remove_cluster_from_clustering
-import pandas as pd
+from utils import dist, recalculate_window_params, find_the_closest_cluster, update_initial_clustering, remove_cluster_from_clustering
 
 class EdgeCluster:
     """
@@ -16,7 +15,7 @@ class EdgeCluster:
         :param: initial_clustring - a list of dicts. It represents the offline clustering (initial clustering). 
                 Each tuple contains the high, low, and mean vectors.
         """
-        matched, deviated, merges = False, False, []
+        matched, deviated, merges, windows = False, False, [], []
         cluster = find_the_closest_cluster(window, initial_clustering)
         if dist(cluster['mean'], window['mean']) > (dist(cluster['low'], cluster['mean']) + dist(window['mean'], window['high'])):
             # D(m_i, m_w) > (D(l_i, m_i) + D(m_w, h_w))
@@ -27,7 +26,8 @@ class EdgeCluster:
                 "changes": {
                     "deviated": deviated,
                     "matched": matched,
-                    "merges": merges
+                    "merges": merges,
+                    "windows": windows
                 },
                 "window": window
             }
@@ -40,7 +40,8 @@ class EdgeCluster:
                 "changes": {
                     "deviated": deviated,
                     "matched": matched,
-                    "merges": merges
+                    "merges": merges,
+                    "windows": windows
                 },
                 "window": window
             }
@@ -62,7 +63,9 @@ class EdgeCluster:
             # merge c with w
             # the merging will be union between both
             sorted_results = sorted(initial_clustering, key=lambda x: x['cluster'], reverse=True)
-            window['cluster'] = sorted_results[0]['cluster'] + 1
+            cluster_label = sorted_results[0]['cluster'] + 1
+            window['cluster'] = cluster_label
+            windows.append(cluster_label)
             initial_clustering.append(window)
 
         return {
@@ -71,7 +74,8 @@ class EdgeCluster:
             "changes": {
                 "deviated": deviated,
                 "matched": matched,
-                "merges": merges
+                "merges": merges,
+                "windows": windows
             },
             "window": window
         }

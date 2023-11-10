@@ -6,7 +6,7 @@ from itertools import product
 
 from src.utils import calculate_hyper_rectangle_features
 
-def syntethic(num_dimentions=2, num_streams=3, num_windows=10, batch_size=1000):
+def syntethic(num_dimentions=2, num_streams=3, num_segments=10, batch_size=100):
     """
     Preprocessing the syntethic data. The data is presented in 2 or 8 dimentional data
 
@@ -18,7 +18,7 @@ def syntethic(num_dimentions=2, num_streams=3, num_windows=10, batch_size=1000):
     
     # read the data 
     for stream in range(1, num_streams):
-        for segment in range(num_windows):
+        for segment in range(num_segments):
             df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'syntethic', f'{num_dimentions}-dim', f'seed_75_stream_{stream}_segment_{segment}_createdelete=False.csv'))
 
             for index in range(0, df.shape[0], batch_size):

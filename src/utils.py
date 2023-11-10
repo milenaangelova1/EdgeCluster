@@ -94,13 +94,6 @@ def find_the_closest_cluster(w: dict, C: list) -> dict:
         "cluster": c,
         "dist": min_dist
     })
-    segment = w['segment']
-    stream = w['stream']
-    
-    # TODO: write the results in json or csv file
-    # with open(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'closed_cluster_segment_{segment}_stream_{stream}.json'), 'w') as f:
-    #     dump = json.dumps(sorted_results, cls=NumpyEncoder)
-    #     json.dump(dump, f)
    
     return min_dist
 
@@ -222,8 +215,33 @@ def summary(final_clustering):
     window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream']])
     window_df.columns = ['window high', 'window low', 'window mean', 'window label', 'window stream']
 
-    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges']])
-    changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster']
+    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows']])
+    changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster', 'new clusters (labels)']
 
     df = pd.concat([cluster_df, window_df, changes_df], axis=1)
     return df
+
+def move_data(initial_clustering, clustering, list_of_windows):
+    """
+    :param: initial_clustering - this is the original clustering at the begining
+    :param: clustering - this is the current clustering for a specific window
+    :param: list of windows - all windows from the begining.
+    """
+    merges = clustering['changes']['merges']
+    windows = clustering['changes']['windows']
+
+    cluster = clustering['closed_cluster']['cluster']
+    window = clustering['window']
+    if merges:
+        for cluster_label in merges:
+            initial_clustering['clustering'][0]['data']['cluster'].replace(cluster_label, cluster, inplace=True)
+        # find the window in the final clustering
+        # add the cluster label to the windows data
+        # then add all the data to the the final clustering
+        window_data = list(filter(lambda x: x['data'] if window['stream'] == x['stream'] and window['segment'] == x['segment'] else None, list_of_windows['clustering']))
+
+    elif windows:
+        pass
+        
+
+    
