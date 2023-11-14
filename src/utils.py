@@ -88,13 +88,15 @@ def find_the_closest_cluster(w: dict, C: list) -> dict:
             "cluster": c
         })
     sorted_results = sorted(results, key=lambda x: x['dist'], reverse=False)
-    min_dist = sorted_results[0]['cluster']
-    sorted_results.append({
-        "window": w,
-        "cluster": c,
-        "dist": min_dist
-    })
-   
+    min_dist = None
+    if len(sorted_results) != 0:
+        min_dist = sorted_results[0]['cluster']
+        sorted_results.append({
+            "window": w,
+            "cluster": c,
+            "dist": min_dist
+        })
+    
     return min_dist
 
 def update_initial_clustering(cluster_metrics, initial_clustering):
@@ -210,9 +212,13 @@ def get_label(clustering):
 def summary(final_clustering):
 
     cluster_df = pd.json_normalize(final_clustering['closed_cluster'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
+    if 'segment' in cluster_df.columns:
+        cluster_df = cluster_df.drop(['segment'], axis=1)
     cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster stream']
 
     window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream']])
+    if 'cluster' in window_df.columns:
+        window_df = window_df.drop(['cluster'], axis=1)
     window_df.columns = ['window high', 'window low', 'window mean', 'window label', 'window stream']
 
     changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows']])
@@ -235,13 +241,26 @@ def move_data(initial_clustering, clustering, list_of_windows):
     if merges:
         for cluster_label in merges:
             initial_clustering['clustering'][0]['data']['cluster'].replace(cluster_label, cluster, inplace=True)
-        # find the window in the final clustering
-        # add the cluster label to the windows data
-        # then add all the data to the the final clustering
-        window_data = list(filter(lambda x: x['data'] if window['stream'] == x['stream'] and window['segment'] == x['segment'] else None, list_of_windows['clustering']))
-
+        window_data = find_window(list_of_windows, window)
+        add_cluster_label(window_data, cluster)
+        if not window_data is None:
+            initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data])
     elif windows:
-        pass
+        window_data = find_window(list_of_windows, window)
+        cluster_label = initial_clustering['clustering'][0]['data']['cluster'].max() + 1
+        add_cluster_label(window_data, cluster_label)
+
+def find_window(list_of_windows, window):
+    window_data = None
+    for w in list_of_windows['clustering']:
+        if window['stream'] == w['stream'] and window['segment'] == w['segment']:
+            window_data = w['data']
+            break
+    return window_data
+
+def add_cluster_label(window_data, cluster):
+    window_data['cluster'] = window_data.shape[0] * [str(cluster)]
+    window_data['cluster'] = window_data['cluster'].astype(int)
         
 
     

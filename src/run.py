@@ -29,7 +29,6 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
     for index, window in enumerate(list_of_windows['clustering_metrics']):
         print(f"Start processing a window {index}")
         clustering = EdgeCluster().fit(window, offline_clustering)
-        # TODO: if there are merges or new windows then the real clustering needs to be updated
         move_data(initial_clustering, clustering, list_of_windows)
         print(f"The EdgeCluster completed for a window {index}")
         print(f"Start plotting a graph for a window {index}")
@@ -62,8 +61,8 @@ def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):
 
 if __name__ == '__main__':
     # 3-streams with 2-dimensional data
-    # experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=100)
+    experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=10)
     # 12-streams with 8-dimensional data
-    experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=100, plots=False)
+    # experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=100, plots=False)
 
     # experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10)

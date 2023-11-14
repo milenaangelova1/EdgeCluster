@@ -17,6 +17,8 @@ class EdgeCluster:
         """
         matched, deviated, merges, windows = False, False, [], []
         cluster = find_the_closest_cluster(window, initial_clustering)
+        if not cluster is None:
+            return
         if dist(cluster['mean'], window['mean']) > (dist(cluster['low'], cluster['mean']) + dist(window['mean'], window['high'])):
             # D(m_i, m_w) > (D(l_i, m_i) + D(m_w, h_w))
             deviated = True
