@@ -19,7 +19,8 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                 xaxis_label='Feature 1', 
                 yaxis_label='Feature 2', 
                 num_dimentions=num_dimentions, 
-                color_pallete='tab10')
+                color_pallete='tab10',
+                batch_size=batch_size)
         
     # keep all the clustering solutions
     # the latest one is the final one
@@ -41,13 +42,22 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                 xaxis_label='Feature 1', 
                 yaxis_label='Feature 2', 
                 num_dimentions=num_dimentions, 
-                color_pallete='tab10')
+                color_pallete='tab10', 
+                batch_size=batch_size)
         print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
         print(f"Summary for a window {index}")
         df = summary(clustering)
         print(f"Write a csv for a window {index}")
-        write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', data=df, num_dimentions=num_dimentions)
+        write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
+                     data=df, 
+                     num_dimentions=num_dimentions,
+                     batch_size=batch_size)
+       
+    write_to_csv(filename='final_clustering', 
+                    data=initial_clustering['clustering'][0]['data'], 
+                    num_dimentions=num_dimentions,
+                    batch_size=batch_size)
     return list_of_clustering_solutions
 
 def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):
@@ -60,9 +70,11 @@ def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):
         EdgeCluster().fit(w, initial_clustering)
 
 if __name__ == '__main__':
-    # 3-streams with 2-dimensional data
-    experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=10)
-    # 12-streams with 8-dimensional data
-    # experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=100, plots=False)
+    size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]
+    for size in size_windows:
+        # 3-streams with 2-dimensional data
+        experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
+        # 12-streams with 8-dimensional data
+        experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
 
     # experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10)

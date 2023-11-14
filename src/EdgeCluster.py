@@ -17,8 +17,8 @@ class EdgeCluster:
         """
         matched, deviated, merges, windows = False, False, [], []
         cluster = find_the_closest_cluster(window, initial_clustering)
-        if not cluster is None:
-            return
+        # if not cluster is None:
+        #     return
         if dist(cluster['mean'], window['mean']) > (dist(cluster['low'], cluster['mean']) + dist(window['mean'], window['high'])):
             # D(m_i, m_w) > (D(l_i, m_i) + D(m_w, h_w))
             deviated = True
@@ -52,7 +52,7 @@ class EdgeCluster:
             # merging c and w and recalculating the window - low, high, and mean vectors.
             cluster = recalculate_window_params(cluster, window)
             for j in initial_clustering:
-                if cluster['cluster'] != j['cluster'] and (dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['high']) <= dist(j['mean'], j['high'])):
+                if cluster['cluster'] != j['cluster'] and ((dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['high']) <= dist(j['mean'], j['high']))):
                         # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
                         # merge clusters c and j. Merging will be union
                         cluster = recalculate_window_params(cluster, window)

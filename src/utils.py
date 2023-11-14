@@ -114,12 +114,12 @@ def remove_cluster_from_clustering(initial_clustering, cluster_for_removing):
     index = next((index for (index, d) in enumerate(initial_clustering) if d["cluster"] == cluster_for_removing['cluster']), None)
     del initial_clustering[index]
 
-def write_to_csv(filename, data, num_dimentions):
+def write_to_csv(filename, data, num_dimentions, batch_size):
     if data.empty:
         return
-    data.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{filename}.csv'), index=False, sep=',')
+    data.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}', f'{filename}.csv'), index=False, sep=',')
 
-def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, num_dimentions: str, color_pallete: str):
+def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, num_dimentions: str, color_pallete: str, batch_size: int):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.clf()
@@ -157,7 +157,7 @@ def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, titl
     plt.ylabel(yaxis_label)
     plt.title(title)
    
-    plt.savefig(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', 'plots', f'{filename}.png'))
+    plt.savefig(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', 'plots', f'{batch_size}', f'{filename}.png'))
     plt.ioff()
 
 def preprocess_metrics(list_of_clusters):
@@ -210,11 +210,13 @@ def get_label(clustering):
     return label
 
 def summary(final_clustering):
-
-    cluster_df = pd.json_normalize(final_clustering['closed_cluster'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
+    cluster_df = pd.json_normalize(final_clustering['clustering'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
+    cluster_df.columns = ['cluster high', 'cluster low', 'cluster mean', 'cluster label', 'cluster stream']
+    
+    closed_cluster_df = pd.json_normalize(final_clustering['closed_cluster'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
     if 'segment' in cluster_df.columns:
         cluster_df = cluster_df.drop(['segment'], axis=1)
-    cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster stream']
+    closed_cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster stream']
 
     window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream']])
     if 'cluster' in window_df.columns:
