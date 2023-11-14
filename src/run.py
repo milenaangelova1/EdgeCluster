@@ -71,9 +71,9 @@ def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):
 
 if __name__ == '__main__':
     size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]
-    for size in size_windows:
+    for size in [50]:
         # 3-streams with 2-dimensional data
-        experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
+        # experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
         # 12-streams with 8-dimensional data
         experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
 

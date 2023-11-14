@@ -204,18 +204,22 @@ def get_label(clustering):
     if clustering['changes']['deviated']:
         label += 'deviated'
     elif clustering['changes']['merges']:
-        label += '_merges'
+        label += 'merges'
     elif clustering['changes']['matched']:
-        label += '_matched'
+        label += 'matched'
+    elif clustering['changes']['windows']:
+        label += 'window'
     return label
 
 def summary(final_clustering):
     cluster_df = pd.json_normalize(final_clustering['clustering'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
+    if 'segment' in cluster_df.columns:
+        cluster_df = cluster_df.drop(['segment'], axis=1)
     cluster_df.columns = ['cluster high', 'cluster low', 'cluster mean', 'cluster label', 'cluster stream']
     
     closed_cluster_df = pd.json_normalize(final_clustering['closed_cluster'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
-    if 'segment' in cluster_df.columns:
-        cluster_df = cluster_df.drop(['segment'], axis=1)
+    if 'segment' in closed_cluster_df.columns:
+        closed_cluster_df = closed_cluster_df.drop(['segment'], axis=1)
     closed_cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster stream']
 
     window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream']])
@@ -249,8 +253,9 @@ def move_data(initial_clustering, clustering, list_of_windows):
             initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data])
     elif windows:
         window_data = find_window(list_of_windows, window)
-        cluster_label = initial_clustering['clustering'][0]['data']['cluster'].max() + 1
+        cluster_label = window['cluster']
         add_cluster_label(window_data, cluster_label)
+        initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data])
 
 def find_window(list_of_windows, window):
     window_data = None
@@ -260,9 +265,9 @@ def find_window(list_of_windows, window):
             break
     return window_data
 
-def add_cluster_label(window_data, cluster):
-    window_data['cluster'] = window_data.shape[0] * [str(cluster)]
-    window_data['cluster'] = window_data['cluster'].astype(int)
+def add_cluster_label(clustering, cluster):
+    clustering['cluster'] = clustering.shape[0] * [str(cluster)]
+    clustering['cluster'] = clustering['cluster'].astype(int)
         
 
     
