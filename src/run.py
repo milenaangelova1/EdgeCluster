@@ -73,7 +73,7 @@ def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):
 if __name__ == '__main__':
     size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]
     start_time = time.time()
-    for size in size_windows:
+    for size in [10]:
         print(f"Starting size {size}")
         # 3-streams with 2-dimensional data
         experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)

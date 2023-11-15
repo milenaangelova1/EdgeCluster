@@ -60,6 +60,7 @@ class EdgeCluster:
                         update_initial_clustering(cluster, initial_clustering)
                         remove_cluster_from_clustering(initial_clustering, cluster_for_removing = j)
                         merges.append(j['cluster'])
+                
         elif (dist(cluster['low'], cluster['mean']) < dist(cluster['mean'], window['mean'])) and (dist(cluster['mean'], window['mean']) > dist(window['mean'], window['high'])):
             # (D(l_i, m_i) < D(m_i, m_w)) and (D(m_i, m_w) > D(m_w, h_w))
             # merge c with w
