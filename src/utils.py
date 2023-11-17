@@ -114,10 +114,13 @@ def remove_cluster_from_clustering(initial_clustering, cluster_for_removing):
     index = next((index for (index, d) in enumerate(initial_clustering) if d["cluster"] == cluster_for_removing['cluster']), None)
     del initial_clustering[index]
 
-def write_to_csv(filename, data, num_dimentions, batch_size):
+def write_to_csv(filename, data, path):
     if data.empty:
         return
-    data.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}', f'{filename}.csv'), index=False, sep=',')
+    path = os.path.join(os.path.join(os.path.dirname(__file__), *path))
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    data.to_csv(os.path.join(path, f'{filename}.csv'), index=False, sep=',')
 
 def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, num_dimentions: str, color_pallete: str, batch_size: int):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
@@ -156,8 +159,12 @@ def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, titl
     plt.xlabel(xaxis_label)
     plt.ylabel(yaxis_label)
     plt.title(title)
-   
-    plt.savefig(os.path.join(os.path.dirname(__file__), '..', 'results', 'syntethic', f'{num_dimentions}-dim', 'plots', f'{batch_size}', f'{filename}.png'))
+    
+    path = os.path.join(os.path.dirname(__file__), *path)
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
+    plt.savefig(os.path.join(path, f'{batch_size}', f'{filename}.png'))
     plt.ioff()
 
 def preprocess_metrics(list_of_clusters):

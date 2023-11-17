@@ -21,7 +21,8 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                 yaxis_label='Feature 2', 
                 num_dimentions=num_dimentions, 
                 color_pallete='tab10',
-                batch_size=batch_size)
+                batch_size=batch_size,
+                path=['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'plots'])
         
     # keep all the clustering solutions
     # the latest one is the final one
@@ -44,21 +45,20 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                 yaxis_label='Feature 2', 
                 num_dimentions=num_dimentions, 
                 color_pallete='tab10', 
-                batch_size=batch_size)
+                batch_size=batch_size,
+                path = ['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'plots'])
         print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
         print(f"Summary for a window {index}")
         df = summary(clustering)
         print(f"Write a csv for a window {index}")
         write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
-                     data=df, 
-                     num_dimentions=num_dimentions,
-                     batch_size=batch_size)
+                     data=df,
+                     path = ['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
        
     write_to_csv(filename='final_clustering', 
                     data=initial_clustering['clustering'][0]['data'], 
-                    num_dimentions=num_dimentions,
-                    batch_size=batch_size)
+                    path = ['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
     return list_of_clustering_solutions
 
 def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):
