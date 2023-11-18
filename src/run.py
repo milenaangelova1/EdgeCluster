@@ -90,6 +90,7 @@ if __name__ == '__main__':
         experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
     print("--- %s seconds ---" % (time.time() - start_time))
     
-    # start_time = time.time()
-    # experiment_ampds2_data(num_segments=10, batch_size=10)
-    # print("--- %s seconds ---" % (time.time() - start_time))
+    # Second dataset
+    start_time = time.time()
+    experiment_ampds2_data(num_segments=10, batch_size=10)
+    print("--- %s seconds ---" % (time.time() - start_time))
