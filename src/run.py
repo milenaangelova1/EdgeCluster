@@ -3,6 +3,7 @@ import initial_clustering as ic
 import preprocessing_windows as pw
 from utils import draw_graph, get_label, summary, write_to_csv, move_data
 import time
+from itertools import product
 
 def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, num_segments=10, batch_size=100, plots=True):
     """
@@ -61,17 +62,23 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                     path = ['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
     return list_of_clustering_solutions
 
-def experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10):
+def experiment_ampds2_data(num_segments: int, batch_size: int):
     """
     Experiment: runs Edge Cluster over synthetic data.
     """
-    list_of_windows = pw.ampds(num_dimentions, num_streams, num_windows)
-    initial_clustering = ic.ampds(num_dimentions, num_streams)
-    for w in list_of_windows:
-        EdgeCluster().fit(w, initial_clustering)
+    hours = [1, 2, 3, 4, 6, 8]
+    types = ['all', 'gas', 'water', 'weather', 'elec']
+
+    # generate combinations
+    combinations = product(hours, types)
+    for hour, type in combinations:
+        list_of_windows = pw.ampds(hour, type, num_segments, batch_size)
+        initial_clustering = ic.ampds(hour, type)
+        for w in list_of_windows:
+            EdgeCluster().fit(w, initial_clustering)
 
 if __name__ == '__main__':
-    size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]
+    size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]   # number of samples
     start_time = time.time()
     for size in [10]:
         print(f"Starting size {size}")
@@ -82,4 +89,7 @@ if __name__ == '__main__':
         # 12-streams with 8-dimensional data
         experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
     print("--- %s seconds ---" % (time.time() - start_time))
-    # experiment_ampds2_data(num_dimentions=2, num_streams=3, num_windows=10)
+    
+    # start_time = time.time()
+    # experiment_ampds2_data(num_segments=10, batch_size=10)
+    # print("--- %s seconds ---" % (time.time() - start_time))

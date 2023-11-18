@@ -122,7 +122,7 @@ def write_to_csv(filename, data, path):
         os.makedirs(path)
     data.to_csv(os.path.join(path, f'{filename}.csv'), index=False, sep=',')
 
-def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, num_dimentions: str, color_pallete: str, batch_size: int):
+def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, num_dimentions: str, color_pallete: str, batch_size: int, path: str):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.clf()

@@ -113,7 +113,7 @@ def initial_kmedoids_clustering(data, mini, maxi, iterations, distances=None, ce
 			connectivity_clusters,
 			], pd.concat(dfs)
 
-def ampds():
+def _ampds():
 	files = ['elec', 'water', 'gas', 'weather', 'all']
 	distance_functions = [pairwise_euclidean, fastdtw_wrapper]
 	mini = 2
@@ -140,7 +140,7 @@ def ampds():
 					for j in range(len(returns)):
 						df[cols[j]] = returns[j]
 					df.index = index
-					initial_clustering.to_csv(f'data/ampds/initial_clusterings/{hour}H_initial_clusering_{file}_{distance_functions[i].__name__}_seg_{k}.csv')
+					initial_clustering.to_csv(f'data/ampds/initial_clusterings/{hour}H_initial_clustering_{file}_{distance_functions[i].__name__}_seg_{k}.csv')
 					df.to_csv(f'data/ampds/initial_clusterings/{hour}H_initial_{file}_{distance_functions[i].__name__}_seg_{k}.csv')
 
 					# print("Starting", file)
@@ -162,6 +162,30 @@ def fastdtw_wrapper(data):
 	return np.array([[fastdtw(data[x], data[y])[0] for x in range(len(data))]for y in range(len(data))])
 
 
-if __name__ == '__main__':
-	ampds()
+def ampds(hour: int, type: str):
+    clustering = []
+    # read the data 
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'initial_clustering', f'{hour}H_initial_clustering_{type}_pairwise_euclidean_seg_0.csv'))
+   
+    clustering.append({
+        'data': df,
+        'stream': None,
+        'targets': df['cluster']
+    })
 
+    list_clusters_with_metrics = []
+    for cluster in clustering:
+        df = cluster['data']
+        cluster_labels = df['cluster'].unique()
+        for label in cluster_labels:
+            c = df[df['cluster'] == label]
+            # find the high, low and mean vectors of each cluster
+            cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
+            cluster_metrics['cluster'] = label
+            cluster_metrics['stream'] = cluster['stream']
+            list_clusters_with_metrics.append(cluster_metrics)
+
+    return {
+        "clustering": clustering,
+        "clustering_metrics": list_clusters_with_metrics
+    }
