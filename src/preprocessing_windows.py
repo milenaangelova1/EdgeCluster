@@ -64,23 +64,22 @@ def ampds(hour: int, type: str, num_segments: int, batch_size: int):
     
     # read the data 
     for segment in range(num_segments):
-        df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'initial_clustering', f'{hour}H_{type}_segment_{segment}.csv'))
-
+        df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'segmented_data', f'{hour}H_{type}_segment_{segment}.csv'))
+        df = df.drop(['Unnamed: 0'], axis=1)
+        
         if batch_size:
             for index in range(0, df.shape[0], batch_size):
                 new_df = df.iloc[index:index + batch_size, :]
                 clustering.append({
-                    'data': new_df.drop(['cluster'], axis=1),
+                    'data': new_df,
                     'stream': None,
-                    'segment': segment,
-                    'target': new_df['cluster']
+                    'segment': segment
                 })
         else:
             clustering.append({
-                'data': df.drop(['cluster'], axis=1),
+                'data': df,
                 'stream': None,
-                'segment': segment,
-                'target': df['cluster']
+                'segment': segment
             })
     
     list_clusters_with_metrics = []

@@ -29,10 +29,9 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
     # the latest one is the final one
     list_of_clustering_solutions = []
 
-    offline_clustering = initial_clustering['clustering_metrics']
     for index, window in enumerate(list_of_windows['clustering_metrics']):
         print(f"Start processing a window {index}")
-        clustering = EdgeCluster().fit(window, offline_clustering)
+        clustering = EdgeCluster().fit(window, initial_clustering['clustering_metrics'])
         move_data(initial_clustering, clustering, list_of_windows)
         print(f"The EdgeCluster completed for a window {index}")
         print(f"Start plotting a graph for a window {index}")
@@ -62,35 +61,50 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                     path = ['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
     return list_of_clustering_solutions
 
-def experiment_ampds2_data(num_segments: int, batch_size: int):
+def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
     """
     Experiment: runs Edge Cluster over synthetic data.
     """
+    list_of_clustering_solutions = []
+    list_of_windows = pw.ampds(hour, type, num_segments, batch_size)
+    initial_clustering = ic.ampds(hour, type)
+    for index, w in enumerate(list_of_windows['clustering_metrics']):
+        clustering = EdgeCluster().fit(w, initial_clustering['clustering_metrics'])
+        move_data(initial_clustering, clustering, list_of_windows)
+        print(f"The EdgeCluster completed for a window {index}")
+        list_of_clustering_solutions.append(clustering)
+        print(f"Summary for a window {index}")
+        df = summary(clustering)
+        print(f"Write a csv for a window {index}")
+        write_to_csv(filename=f'clustering_window_{index + 1}_{hour}H_{type}_{get_label(clustering)}', 
+                    data=df,
+                    path = ['..', 'results', 'ampds', 'tabular', f'{batch_size}'])
+       
+        write_to_csv(filename=f'final_clustering_{hour}H_{type}', 
+                        data=initial_clustering['clustering'][0]['data'], 
+                        path = ['..', 'results', 'ampds', 'tabular', f'{batch_size}'])
+    return list_of_clustering_solutions
+
+if __name__ == '__main__':
+    # size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]   # number of samples
+    # start_time = time.time()
+    # for size in size_windows:
+    #     print(f"Starting size {size}")
+    #     # 3-streams with 2-dimensional data
+    #     experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
+    # for size in size_windows:
+    #     print(f"Starting size {size}") 
+    #     # 12-streams with 8-dimensional data
+    #     experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
+    # print("--- %s seconds ---" % (time.time() - start_time))
+    
+    # Second dataset
+    start_time = time.time()
     hours = [1, 2, 3, 4, 6, 8]
     types = ['all', 'gas', 'water', 'weather', 'elec']
 
     # generate combinations
     combinations = product(hours, types)
     for hour, type in combinations:
-        list_of_windows = pw.ampds(hour, type, num_segments, batch_size)
-        initial_clustering = ic.ampds(hour, type)
-        for w in list_of_windows:
-            EdgeCluster().fit(w, initial_clustering)
-
-if __name__ == '__main__':
-    size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]   # number of samples
-    start_time = time.time()
-    for size in size_windows:
-        print(f"Starting size {size}")
-        # 3-streams with 2-dimensional data
-        experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
-    for size in size_windows:
-        print(f"Starting size {size}") 
-        # 12-streams with 8-dimensional data
-        experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    
-    # Second dataset
-    start_time = time.time()
-    experiment_ampds2_data(num_segments=10, batch_size=10)
+        experiment_ampds2_data(hour, type, num_segments=10, batch_size=None)
     print("--- %s seconds ---" % (time.time() - start_time))

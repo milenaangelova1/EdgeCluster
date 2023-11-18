@@ -163,29 +163,30 @@ def fastdtw_wrapper(data):
 
 
 def ampds(hour: int, type: str):
-    clustering = []
-    # read the data 
-    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'initial_clustering', f'{hour}H_initial_clustering_{type}_pairwise_euclidean_seg_0.csv'))
-   
-    clustering.append({
+	clustering = []
+	# read the data 
+	df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'initial_clusterings', f'{hour}H_initial_clustering_{type}_pairwise_euclidean_seg_0.csv'))
+	df.drop(['Unnamed: 0'], axis=1, inplace=True)
+	
+	clustering.append({
         'data': df,
         'stream': None,
         'targets': df['cluster']
     })
+	
+	list_clusters_with_metrics = []
+	for cluster in clustering:
+		df = cluster['data']
+		cluster_labels = df['cluster'].unique()
+		for label in cluster_labels:
+			c = df[df['cluster'] == label]
+			# find the high, low and mean vectors of each cluster
+			cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
+			cluster_metrics['cluster'] = label
+			cluster_metrics['stream'] = cluster['stream']
+			list_clusters_with_metrics.append(cluster_metrics)
 
-    list_clusters_with_metrics = []
-    for cluster in clustering:
-        df = cluster['data']
-        cluster_labels = df['cluster'].unique()
-        for label in cluster_labels:
-            c = df[df['cluster'] == label]
-            # find the high, low and mean vectors of each cluster
-            cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
-            cluster_metrics['cluster'] = label
-            cluster_metrics['stream'] = cluster['stream']
-            list_clusters_with_metrics.append(cluster_metrics)
-
-    return {
-        "clustering": clustering,
-        "clustering_metrics": list_clusters_with_metrics
-    }
+	return {
+		"clustering": clustering,
+		"clustering_metrics": list_clusters_with_metrics
+	}
