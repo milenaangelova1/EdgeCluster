@@ -86,17 +86,17 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
     return list_of_clustering_solutions
 
 if __name__ == '__main__':
-    # size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]   # number of samples
-    # start_time = time.time()
-    # for size in size_windows:
-    #     print(f"Starting size {size}")
-    #     # 3-streams with 2-dimensional data
-    #     experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
-    # for size in size_windows:
-    #     print(f"Starting size {size}") 
-    #     # 12-streams with 8-dimensional data
-    #     experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
-    # print("--- %s seconds ---" % (time.time() - start_time))
+    size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]   # number of samples
+    start_time = time.time()
+    for size in size_windows:
+        print(f"Starting size {size}")
+        # 3-streams with 2-dimensional data
+        experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
+    for size in size_windows:
+        print(f"Starting size {size}") 
+        # 12-streams with 8-dimensional data
+        experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
+    print("--- %s seconds ---" % (time.time() - start_time))
     
     # Second dataset
     start_time = time.time()
