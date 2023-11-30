@@ -87,26 +87,25 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
 
 if __name__ == '__main__':
     # Experiment with synthetic data
-    # size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]   # number of samples
-    # start_time = time.time()
-    # for size in size_windows:
-    #     print(f"Starting size {size}")
-    #     # 3-streams with 2-dimensional data
-    #     experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
-    # for size in size_windows:
-    #     print(f"Starting size {size}") 
-    #     # 12-streams with 8-dimensional data
-    #     experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
-    # print("--- %s seconds ---" % (time.time() - start_time))
+    size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]   # number of samples
+    start_time = time.time()
+    for size in size_windows:
+        print(f"Starting size {size}")
+        # 3-streams with 2-dimensional data
+        experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
+    for size in size_windows:
+        print(f"Starting size {size}") 
+        # 12-streams with 8-dimensional data
+        experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
+    print("--- %s seconds ---" % (time.time() - start_time))
     
-    # # Experiment with AMPDS2 dataset
-    # start_time = time.time()
-    # hours = [1, 2, 3, 4, 6, 8]
-    # types = ['all', 'gas', 'water', 'weather', 'elec']
+    # Experiment with AMPDS2 dataset
+    start_time = time.time()
+    hours = [1, 2, 3, 4, 6, 8]
+    types = ['all', 'gas', 'water', 'weather', 'elec']
 
-    # # generate combinations
-    # combinations = product(hours, types)
-    # for hour, type in combinations:
-    #     experiment_ampds2_data(hour, type, num_segments=10, batch_size=None)
-    # print("--- %s seconds ---" % (time.time() - start_time))
-    pass
+    # generate combinations
+    combinations = product(hours, types)
+    for hour, type in combinations:
+        experiment_ampds2_data(hour, type, num_segments=10, batch_size=None)
+    print("--- %s seconds ---" % (time.time() - start_time))
