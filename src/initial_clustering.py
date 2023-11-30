@@ -9,19 +9,19 @@ from fastdtw import fastdtw
 
 from src.utils import calculate_hyper_rectangle_features
 
-def syntethic(num_dimentions=2, num_streams=0, num_segments=10):
+def synthetic(num_dimentions=2, num_streams=0, num_segments=10):
     """
-    Preprocessing the syntethic data. The data is presented in 2 or 8 dimentional data
+    Preprocessing the synthetic data. The data is presented in 2 or 8 dimentional data
 
     :param: dimentions - number of features that data has. Possible values are 2 or 8.
 
-    :returns: pre-processed syntethic data
+    :returns: pre-processed synthetic data
     """
     dfs = []
     clustering = []
     # read the data 
     for num_segment in range(num_segments):
-        dfs.append(pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'syntethic', f'{num_dimentions}-dim', f'seed_75_stream_{num_streams}_segment_{num_segment}_createdelete=False.csv')))
+        dfs.append(pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'synthetic', f'{num_dimentions}-dim', f'seed_75_stream_{num_streams}_segment_{num_segment}_createdelete=False.csv')))
     
     df = pd.concat(dfs)
     clustering.append({

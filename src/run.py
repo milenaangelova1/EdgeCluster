@@ -10,8 +10,8 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
     Experiment: runs Edge Cluster over synthetic data.
     """
 
-    list_of_windows = pw.syntethic(num_dimentions, num_streams = num_streams_windows, num_segments=num_segments, batch_size=batch_size)
-    initial_clustering = ic.syntethic(num_dimentions, num_streams = num_streams_initial)
+    list_of_windows = pw.synthetic(num_dimentions, num_streams = num_streams_windows, num_segments=num_segments, batch_size=batch_size)
+    initial_clustering = ic.synthetic(num_dimentions, num_streams = num_streams_initial)
     if plots:
         draw_graph(df = initial_clustering['clustering'][0]['data'], 
                 df_metrics = initial_clustering['clustering_metrics'],
@@ -23,7 +23,7 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                 num_dimentions=num_dimentions, 
                 color_pallete='tab10',
                 batch_size=batch_size,
-                path=['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'plots'])
+                path=['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots'])
         
     # keep all the clustering solutions
     # the latest one is the final one
@@ -46,7 +46,7 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                 num_dimentions=num_dimentions, 
                 color_pallete='tab10', 
                 batch_size=batch_size,
-                path = ['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'plots'])
+                path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots'])
         print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
         print(f"Summary for a window {index}")
@@ -54,11 +54,11 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
         print(f"Write a csv for a window {index}")
         write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
                      data=df,
-                     path = ['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
+                     path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
        
     write_to_csv(filename='final_clustering', 
                     data=initial_clustering['clustering'][0]['data'], 
-                    path = ['..', 'results', 'syntethic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
+                    path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
     return list_of_clustering_solutions
 
 def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
