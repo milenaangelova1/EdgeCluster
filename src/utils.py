@@ -122,7 +122,7 @@ def write_to_csv(filename, data, path):
         os.makedirs(path)
     data.to_csv(os.path.join(path, f'{filename}.csv'), index=False, sep=',')
 
-def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, num_dimentions: str, color_pallete: str, batch_size: int, path: str):
+def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, color_pallete: str, batch_size: int, path: str):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.clf()
@@ -132,11 +132,12 @@ def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, titl
     highs, lows, means, clusters = preprocess_metrics(df_metrics)
     if not df.empty:
         data = df.values
-        plt.scatter(data[:, 0], data[:, 1], c=data[:, 2], cmap=color_pallete)
-        plt.legend(map(lambda x: 'Cluster ' + str(x), clusters))
+        scatter = plt.scatter(data[:, 0], data[:, 1], c=data[:, 2], cmap=color_pallete)
+        # plt.legend(map(lambda x: 'Cluster ' + str(x), clusters))
+        plt.legend(handles=scatter.legend_elements()[0], labels=map(lambda x: 'Cluster ' + str(x), clusters))
 
-    plt.scatter(highs[:, 0], highs[:, 1], c=clusters, cmap=color_pallete, marker='x', s=100)
-    plt.scatter(lows[:, 0], lows[:, 1], c=clusters, cmap=color_pallete, marker='x', s=100)
+    # plt.scatter(highs[:, 0], highs[:, 1], c=clusters, cmap=color_pallete, marker='x', s=100)
+    # plt.scatter(lows[:, 0], lows[:, 1], c=clusters, cmap=color_pallete, marker='x', s=100)
     plt.scatter(means[:, 0], means[:, 1], color=['black'], marker='o', s=100)
 
     if window_metrics:
@@ -146,9 +147,9 @@ def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, titl
         plt.plot(x_values, y_values,'r--')
 
         highs, lows, means, clusters = preprocess_metrics(window_metrics)
-        plt.scatter(highs[:, 0], highs[:, 1], color=['green'], marker='s', s=100)
-        plt.scatter(lows[:, 0], lows[:, 1], color=['black'], marker='s', s=100)
-        plt.scatter(means[:, 0], means[:, 1], color=['black'], marker='o', s=100)
+        # plt.scatter(highs[:, 0], highs[:, 1], color=['green'], marker='s', s=100)
+        # plt.scatter(lows[:, 0], lows[:, 1], color=['black'], marker='s', s=100)
+        # plt.scatter(means[:, 0], means[:, 1], color=['black'], marker='o', s=100)
 
         point_1, point_2, point_3, point_4 = calculate_points(highs, lows)
         x_values = [[point_1[0], point_4[0]], [point_4[0], point_2[0]], [point_2[0], point_3[0]], [point_3[0], point_1[0]]]

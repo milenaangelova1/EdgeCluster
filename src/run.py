@@ -3,15 +3,14 @@ import initial_clustering as ic
 import preprocessing_windows as pw
 from utils import draw_graph, get_label, summary, write_to_csv, move_data
 import time
-from itertools import product
 
-def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, num_segments=10, batch_size=100, plots=True):
+def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10, batch_size=100, plots=True):
     """
     Experiment: runs Edge Cluster over synthetic data.
     """
 
-    list_of_windows = pw.synthetic(num_dimentions, num_streams = num_streams_windows, num_segments=num_segments, batch_size=batch_size)
-    initial_clustering = ic.synthetic(num_dimentions, num_streams = num_streams_initial)
+    list_of_windows = pw.synthetic(num_dimentions, stream_number=stream_number, num_segments=num_segments, batch_size=batch_size)
+    initial_clustering = ic.synthetic(num_dimentions, stream_number=stream_number)
     if plots:
         draw_graph(df = initial_clustering['clustering'][0]['data'], 
                 df_metrics = initial_clustering['clustering_metrics'],
@@ -20,10 +19,9 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                 title=f'Initial clustering of {num_dimentions}-dim data', 
                 xaxis_label='Feature 1', 
                 yaxis_label='Feature 2', 
-                num_dimentions=num_dimentions, 
                 color_pallete='tab10',
                 batch_size=batch_size,
-                path=['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots'])
+                path=['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots', f'stream {stream_number}'])
         
     # keep all the clustering solutions
     # the latest one is the final one
@@ -43,10 +41,9 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
                 title=f'Clustering of {num_dimentions}-dim data for window {index + 1}', 
                 xaxis_label='Feature 1', 
                 yaxis_label='Feature 2', 
-                num_dimentions=num_dimentions, 
                 color_pallete='tab10', 
                 batch_size=batch_size,
-                path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots'])
+                path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots', f'stream {stream_number}'])
         print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
         print(f"Summary for a window {index}")
@@ -54,11 +51,11 @@ def experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_strea
         print(f"Write a csv for a window {index}")
         write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
                      data=df,
-                     path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
+                     path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{batch_size}'])
        
     write_to_csv(filename='final_clustering', 
                     data=initial_clustering['clustering'][0]['data'], 
-                    path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'{batch_size}'])
+                    path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{batch_size}'])
     return list_of_clustering_solutions
 
 def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
@@ -87,25 +84,28 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
 
 if __name__ == '__main__':
     # Experiment with synthetic data
-    size_windows = [10, 25, 50, 75, 100, 250, 500, 750, 1000]   # number of samples
+    size_windows = [3, 5, 10]   # number of samples
     start_time = time.time()
-    for size in size_windows:
-        print(f"Starting size {size}")
-        # 3-streams with 2-dimensional data
-        experiment_synthetic_data(num_dimentions=2, num_streams_initial=0, num_streams_windows=3, batch_size=size)
-    for size in size_windows:
-        print(f"Starting size {size}") 
-        # 12-streams with 8-dimensional data
-        experiment_synthetic_data(num_dimentions=8, num_streams_initial=0, num_streams_windows=12, batch_size=size, plots=False)
+    
+    # for stream_num in range(3):
+    #     for size in size_windows:
+    #         print(f"Starting size {size}")
+    #         # 3-streams with 2-dimensional data
+    #         experiment_synthetic_data(num_dimentions=2, stream_number=stream_num, num_segments=10, batch_size=size)
+    for stream_num in range(12):
+        for size in size_windows:
+            print(f"Starting size {size}") 
+            # 12-streams with 8-dimensional data
+            experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
     print("--- %s seconds ---" % (time.time() - start_time))
     
-    # Experiment with AMPDS2 dataset
-    start_time = time.time()
-    hours = [1, 2, 3, 4, 6, 8]
-    types = ['all', 'gas', 'water', 'weather', 'elec']
+    # # Experiment with AMPDS2 dataset
+    # start_time = time.time()
+    # hours = [1, 2, 3, 4, 6, 8]
+    # types = ['all', 'gas', 'water', 'weather', 'elec']
 
-    # generate combinations
-    combinations = product(hours, types)
-    for hour, type in combinations:
-        experiment_ampds2_data(hour, type, num_segments=10, batch_size=None)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # # generate combinations
+    # combinations = product(hours, types)
+    # for hour, type in combinations:
+    #     experiment_ampds2_data(hour, type, num_segments=10, batch_size=None)
+    # print("--- %s seconds ---" % (time.time() - start_time))
