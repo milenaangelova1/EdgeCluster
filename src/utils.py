@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
-import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import os
+import math
+import matplotlib.colors as mcolors
 
 def dist(vector1: list, vector2: list) -> float:
     """
@@ -122,7 +124,7 @@ def write_to_csv(filename, data, path):
         os.makedirs(path)
     data.to_csv(os.path.join(path, f'{filename}.csv'), index=False, sep=',')
 
-def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, color_pallete: str, batch_size: int, path: str):
+def _draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, color_pallete: str, batch_size: int, path: str):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.clf()
@@ -168,28 +170,67 @@ def draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, titl
     plt.savefig(os.path.join(path, f'{batch_size}', f'{filename}.png'))
     plt.ioff()
 
-def preprocess_metrics(list_of_clusters):
-    highs, lows, means, clusters = [], [], [], []
-    
-    if not list_of_clusters:
-        return
-    
-    for cluster in list_of_clusters:
-        highs.append(pd.DataFrame({"0": [cluster['high'][0]], "1": [cluster['high'][1]]}))
-        lows.append(pd.DataFrame({"0": [cluster['low'][0]], "1": [cluster['low'][1]]}))
-        means.append(pd.DataFrame({"0": [cluster['mean'][0]], "1": [cluster['mean'][1]]}))
-        if 'cluster' in cluster.keys():
-            clusters.append(pd.DataFrame({'cluster': [cluster['cluster']]}))
-    
-    highs = pd.concat(highs)
-    lows = pd.concat(lows)
-    means = pd.concat(means)
-    cluster_values = []
-    if clusters:
-        clusters = pd.concat(clusters)
-        cluster_values = clusters.values
-       
-    return highs.values, lows.values, means.values, cluster_values
+def get_width(cluster):
+    point_1 = cluster['low']
+    point_2 = [cluster['high'][0], cluster["low"][1]]
+    return math.sqrt(math.pow(point_1[0] - point_2[0], 2) + math.pow(point_1[1] - point_2[1], 2))
+
+def get_height(cluster):
+    point_3 = [cluster['low'][0], cluster['high'][1]]
+    point_1 = cluster['low']
+    return math.sqrt(math.pow(point_1[0] - point_3[0], 2) + math.pow(point_1[1] - point_3[1], 2))
+
+def get_coordinates(clusters):
+    coordinates = []
+    for cluster in clusters:
+        left, width = cluster['low'][0], get_width(cluster)
+        bottom, height = cluster['low'][1], get_height(cluster)
+        mean = cluster['mean']
+
+        right = left + width
+        top = bottom + height
+
+        coordinates.append({"left": left, "width": width, "bottom": bottom, "height": height, "right": right, "top": top, "mean": mean})
+    return coordinates
+
+def plot_rectangles(clusters: list):
+    # build a rectangle in axes coords
+    colors = list(mcolors.TABLEAU_COLORS.keys())
+    handles = []
+    coordinates = get_coordinates(clusters)
+    clusters = list(map(lambda x: f'Cluster {x["cluster"]}', clusters))
+    _, ax = plt.subplots()
+
+    for index, coord in enumerate(coordinates):
+        left = coord['left']
+        bottom = coord['bottom']
+        width = coord['width']
+        height = coord['height']
+        right = coord['right']
+        top = coord['top']
+        mean = coord['mean']
+
+        ax.plot(mean[0], mean[1], 'o', color=mcolors.TABLEAU_COLORS[colors[index]])
+
+        p = patches.Rectangle(
+                (left, bottom), width, height,
+                fill=True, clip_on=False,
+                alpha=0.6,
+                facecolor=mcolors.TABLEAU_COLORS[colors[index]]
+                )
+
+        ax.add_patch(p)
+
+        ax.text(left, bottom, 'min',
+                horizontalalignment='left',
+                verticalalignment='top')
+
+        ax.text(right, top, 'max',
+                horizontalalignment='right',
+                verticalalignment='bottom')
+
+        handles.append(p)
+    return handles, clusters
 
 def compare_dicts(dict1: dict, dict2: dict):
     flag = False
@@ -207,8 +248,72 @@ def calculate_points(higher_point: dict, lower_point: dict):
     point_4 = [point_2[0], point_1[1]]
     return point_1, point_2, point_3, point_4
 
+def draw_graph(df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, batch_size: int, path: str):
+    plt.rcParams["figure.autolayout"] = True
+    plt.clf()
+
+    if len(df_metrics) == 0:
+        return
+    
+    handles, clusters = plot_rectangles(df_metrics)
+
+    if window_metrics:
+        highs, lows = preprocess_metrics(df_metrics)
+        # plot cluster vectors
+        point_1, point_2, point_3, point_4 = calculate_points(highs, lows)
+        x_values = [[point_1[0], point_4[0]], [point_4[0], point_2[0]], [point_2[0], point_3[0]], [point_3[0], point_1[0]]]
+        y_values = [[point_1[1], point_4[1]], [point_4[1], point_2[1]], [point_2[1], point_3[1]], [point_3[1], point_1[1]]]
+        cluster_plot = plt.plot(x_values, y_values,'r--')
+
+        highs, lows = preprocess_metrics(window_metrics)
+
+        # plot window vectors
+        point_1, point_2, point_3, point_4 = calculate_points(highs, lows)
+        x_values = [[point_1[0], point_4[0]], [point_4[0], point_2[0]], [point_2[0], point_3[0]], [point_3[0], point_1[0]]]
+        y_values = [[point_1[1], point_4[1]], [point_4[1], point_2[1]], [point_2[1], point_3[1]], [point_3[1], point_1[1]]]
+        window_plot = plt.plot(x_values, y_values,'k--')
+
+        for c_plot, w_plot in zip(cluster_plot, window_plot):
+            handles.append(c_plot)
+            handles.append(w_plot)
+        clusters.append('Closed cluster')
+        clusters.append('Current window')
+
+    plt.legend(handles=handles, labels = clusters, loc='center left', bbox_to_anchor=(0.0, -0.3), ncol=3, borderaxespad=0)
+
+    plt.xlabel(xaxis_label)
+    plt.ylabel(yaxis_label)
+    plt.title(title)
+    
+    path = os.path.join(os.path.dirname(__file__), *path)
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
+    plt.savefig(os.path.join(path, f'{batch_size}', f'{filename}.png'))
+    plt.ioff()
+
+def preprocess_metrics(list_of_clusters):
+    highs, lows, means, clusters = [], [], [], []
+    
+    if not list_of_clusters:
+        return
+    
+    for cluster in list_of_clusters:
+        highs.append(pd.DataFrame({"0": [cluster['high'][0]], "1": [cluster['high'][1]]}))
+        lows.append(pd.DataFrame({"0": [cluster['low'][0]], "1": [cluster['low'][1]]}))
+        means.append(pd.DataFrame({"0": [cluster['mean'][0]], "1": [cluster['mean'][1]]}))
+        if 'cluster' in cluster.keys():
+            clusters.append(pd.DataFrame({'cluster': [cluster['cluster']]}))
+    
+    highs = pd.concat(highs)
+    lows = pd.concat(lows)
+    means = pd.concat(means)
+       
+    return highs.values, lows.values
+
+
 def get_label(clustering):
-    label = ''
+    label = 'recalculation_without_merging'
     if clustering['changes']['deviated']:
         label += 'deviated'
     elif clustering['changes']['merges']:
@@ -277,5 +382,3 @@ def add_cluster_label(clustering, cluster):
     clustering['cluster'] = clustering.shape[0] * [str(cluster)]
     clustering['cluster'] = clustering['cluster'].astype(int)
         
-
-    

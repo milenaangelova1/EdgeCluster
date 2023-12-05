@@ -12,14 +12,12 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
     list_of_windows = pw.synthetic(num_dimentions, stream_number=stream_number, num_segments=num_segments, batch_size=batch_size)
     initial_clustering = ic.synthetic(num_dimentions, stream_number=stream_number)
     if plots:
-        draw_graph(df = initial_clustering['clustering'][0]['data'], 
-                df_metrics = initial_clustering['clustering_metrics'],
+        draw_graph(df_metrics = initial_clustering['clustering_metrics'],
                 window_metrics={},
                 filename='initial_clustering', 
                 title=f'Initial clustering of {num_dimentions}-dim data', 
                 xaxis_label='Feature 1', 
                 yaxis_label='Feature 2', 
-                color_pallete='tab10',
                 batch_size=batch_size,
                 path=['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots', f'stream {stream_number}'])
         
@@ -34,14 +32,12 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
         print(f"The EdgeCluster completed for a window {index}")
         print(f"Start plotting a graph for a window {index}")
         if plots:
-            draw_graph(df = initial_clustering['clustering'][0]['data'], 
-                df_metrics = clustering['clustering'],
+            draw_graph(df_metrics = clustering['clustering'],
                 window_metrics=[window],
                 filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
                 title=f'Clustering of {num_dimentions}-dim data for window {index + 1}', 
                 xaxis_label='Feature 1', 
                 yaxis_label='Feature 2', 
-                color_pallete='tab10', 
                 batch_size=batch_size,
                 path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots', f'stream {stream_number}'])
         print(f"The graph for a window {index} was plotted")
@@ -87,17 +83,17 @@ if __name__ == '__main__':
     size_windows = [3, 5, 10]   # number of samples
     start_time = time.time()
     
-    # for stream_num in range(3):
-    #     for size in size_windows:
-    #         print(f"Starting size {size}")
-    #         # 3-streams with 2-dimensional data
-    #         experiment_synthetic_data(num_dimentions=2, stream_number=stream_num, num_segments=10, batch_size=size)
-    for stream_num in range(12):
+    for stream_num in range(3):
         for size in size_windows:
-            print(f"Starting size {size}") 
-            # 12-streams with 8-dimensional data
-            experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
-    print("--- %s seconds ---" % (time.time() - start_time))
+            print(f"Starting size {size}")
+            # 3-streams with 2-dimensional data
+            experiment_synthetic_data(num_dimentions=2, stream_number=stream_num, num_segments=10, batch_size=size)
+    # for stream_num in range(12):
+    #     for size in size_windows:
+    #         print(f"Starting size {size}") 
+    #         # 12-streams with 8-dimensional data
+    #         experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
+    # print("--- %s seconds ---" % (time.time() - start_time))
     
     # # Experiment with AMPDS2 dataset
     # start_time = time.time()

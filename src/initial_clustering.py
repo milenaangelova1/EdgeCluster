@@ -4,7 +4,8 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.metrics import silhouette_score
-from functions import kmedoids, IC_av, calculate_connectivity, pairwise_euclidean, calculate_distances
+from clustering import kmedoids, calculate_distances, pairwise_euclidean
+from metrics import calculate_connectivity, IC_av
 from fastdtw import fastdtw
 
 from src.utils import calculate_hyper_rectangle_features
