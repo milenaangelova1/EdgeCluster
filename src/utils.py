@@ -124,6 +124,16 @@ def write_to_csv(filename, data, path):
         os.makedirs(path)
     data.to_csv(os.path.join(path, f'{filename}.csv'), index=False, sep=',')
 
+def preprocessing_final_dataset(clustering: list):
+    dfs = []
+    for cluster in clustering:
+        df = cluster['data']
+        df['target'] = cluster['targets']
+        df['segment'] = cluster['segment']
+        df['stream'] = cluster['stream']
+        dfs.append(df)
+    return pd.concat(dfs)
+
 def _draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, color_pallete: str, batch_size: int, path: str):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
     plt.rcParams["figure.autolayout"] = True
@@ -313,7 +323,7 @@ def preprocess_metrics(list_of_clusters):
 
 
 def get_label(clustering):
-    label = 'recalculation_without_merging'
+    label = ''
     if clustering['changes']['deviated']:
         label += 'deviated'
     elif clustering['changes']['merges']:
@@ -322,6 +332,8 @@ def get_label(clustering):
         label += 'matched'
     elif clustering['changes']['windows']:
         label += 'window'
+    else:
+        label +='recalculation_without_merging'
     return label
 
 def summary(final_clustering):
@@ -360,25 +372,33 @@ def move_data(initial_clustering, clustering, list_of_windows):
     if merges:
         for cluster_label in merges:
             initial_clustering['clustering'][0]['data']['cluster'].replace(cluster_label, cluster, inplace=True)
-        window_data = find_window(list_of_windows, window)
+        window_data, segment, stream, target = find_window(list_of_windows, window)
         add_cluster_label(window_data, cluster)
         if not window_data is None:
-            initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data])
+            add_window_data(initial_clustering, window_data, segment, stream, target)
     elif windows:
-        window_data = find_window(list_of_windows, window)
+        window_data, segment, stream, target = find_window(list_of_windows, window)
         cluster_label = window['cluster']
         add_cluster_label(window_data, cluster_label)
-        initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data])
+        add_window_data(initial_clustering, window_data, segment, stream, target)
 
+def add_window_data(initial_clustering, window_data, segment, stream, target):
+    initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
+    initial_clustering['clustering'][0]['segment'] = initial_clustering['clustering'][0]['segment'] + segment
+    initial_clustering['clustering'][0]['stream'] = initial_clustering['clustering'][0]['stream'] + stream
+    initial_clustering['clustering'][0]['targets'] = initial_clustering['clustering'][0]['targets'] + target
+        
 def find_window(list_of_windows, window):
     window_data = None
     for w in list_of_windows['clustering']:
         if window['stream'] == w['stream'] and window['segment'] == w['segment']:
             window_data = w['data']
+            segment = [w['segment']] * window_data.shape[0]
+            stream = [w['stream']] * window_data.shape[0]
+            target = list(w['target'].values)
             break
-    return window_data
+    return window_data, segment, stream, target
 
 def add_cluster_label(clustering, cluster):
-    clustering['cluster'] = clustering.shape[0] * [str(cluster)]
-    clustering['cluster'] = clustering['cluster'].astype(int)
+    clustering['cluster'] = clustering.shape[0] * [cluster]
         

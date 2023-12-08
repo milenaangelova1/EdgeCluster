@@ -24,8 +24,9 @@ def synthetic(num_dimentions=2, stream_number=0):
 
     clustering.append({
         'data': df,
-        'stream': stream_number,
-        'targets': df['cluster']
+        'stream': [stream_number] * df.shape[0],
+		'segment': [0] * df.shape[0],
+        'targets': list(df['cluster'].values)
     })
 
     list_clusters_with_metrics = []
@@ -169,6 +170,7 @@ def ampds(hour: int, type: str):
 	clustering.append({
         'data': df,
         'stream': None,
+		'segment': 0,
         'targets': df['cluster']
     })
 	

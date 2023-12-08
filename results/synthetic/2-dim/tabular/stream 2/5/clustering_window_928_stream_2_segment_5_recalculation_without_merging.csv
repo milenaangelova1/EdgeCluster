@@ -1,3 +1,0 @@
-cluster high,cluster low,cluster mean,cluster label,cluster stream,window high,window low,window mean,window label,window stream,is the cluster and the window deviated,is the cluster and the window matched,cluster labels that are merged together into a cluster,new clusters (labels)
-[0.21141032 0.06336096],[ 0.06671732 -0.02485242],[0.13906382 0.01925427],3,2,[0.29793547 0.7916602 ],[ 0.14321707 -0.01618584],[0.22057627 0.38773718],2.0,5.0,False,False,[],[]
-[0.28868106 0.30816954],[0.14945494 0.0347861 ],[0.219068   0.17147782],7,2,,,,,,,,,

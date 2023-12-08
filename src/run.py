@@ -1,14 +1,14 @@
 from EdgeCluster import EdgeCluster
 import initial_clustering as ic
 import preprocessing_windows as pw
-from utils import draw_graph, get_label, summary, write_to_csv, move_data
+from utils import draw_graph, get_label, summary, write_to_csv, move_data, preprocessing_final_dataset
 import time
+import pandas as pd
 
 def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10, batch_size=100, plots=True):
     """
     Experiment: runs Edge Cluster over synthetic data.
     """
-
     list_of_windows = pw.synthetic(num_dimentions, stream_number=stream_number, num_segments=num_segments, batch_size=batch_size)
     initial_clustering = ic.synthetic(num_dimentions, stream_number=stream_number)
     if plots:
@@ -24,7 +24,7 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
     # keep all the clustering solutions
     # the latest one is the final one
     list_of_clustering_solutions = []
-
+    dfs = []
     for index, window in enumerate(list_of_windows['clustering_metrics']):
         print(f"Start processing a window {index}")
         clustering = EdgeCluster().fit(window, initial_clustering['clustering_metrics'])
@@ -45,12 +45,20 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
         print(f"Summary for a window {index}")
         df = summary(clustering)
         print(f"Write a csv for a window {index}")
+        df['index'] = df.shape[0] * [index]
+        dfs.append(df)
         write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
                      data=df,
                      path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{batch_size}'])
-       
+    
+    final_df = preprocessing_final_dataset(initial_clustering['clustering'])
     write_to_csv(filename='final_clustering', 
-                    data=initial_clustering['clustering'][0]['data'], 
+                    data=final_df, 
+                    path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{batch_size}'])
+    
+    monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
+    write_to_csv(filename='final_minitoring', 
+                    data=monitoring_df, 
                     path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{batch_size}'])
     return list_of_clustering_solutions
 
