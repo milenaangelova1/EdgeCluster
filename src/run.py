@@ -45,7 +45,7 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
         print(f"Summary for a window {index}")
         df = summary(clustering)
         print(f"Write a csv for a window {index}")
-        df['index'] = df.shape[0] * [index]
+        df['index'] = df.shape[0] * [index + 1]
         dfs.append(df)
         write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
                      data=df,
