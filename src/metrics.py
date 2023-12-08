@@ -1,24 +1,24 @@
 
-from sklearn.metrics import silhouette_score
 from scipy.sparse.csgraph import minimum_spanning_tree
 import pandas as pd
 import numpy as np
 import copy
 from clustering import calculate_distances
-from sklearn.metrics import pairwise_distances, classification_report
+from sklearn.metrics import pairwise_distances, homogeneity_score, silhouette_score
 
-def evalutation_report(data, pred_labels, true_labels):
+def evalutation_report(data, pred_labels, true_labels=None):
+    F1 = None
+    _homogeneity_score = None
     distances = calculate_distances(data.to_numpy(copy=True))
     connectivity = calculate_connectivity(data, 
                                         pred_labels,
                                         [x for x in range(data.shape[1])],
                                         10, distance_matrix=distances)['CONN'].sum()
-    
-    F1 = f_measure(pred_labels, true_labels)
     SI = calculate_silhouette(data, pred_labels)
-    class_report = classification_report(true_labels, pred_labels, target_names=true_labels.unique())
-
-    return connectivity, F1, SI, class_report
+    if true_labels != None:
+        F1 = f_measure(pred_labels, true_labels)
+        _homogeneity_score = homogeneity_score(true_labels, pred_labels)
+    return connectivity, F1, SI, _homogeneity_score
 
 # F1
 def f_measure(pred, true):
@@ -284,15 +284,15 @@ def find_nearest_neighbors(sample, neighbors, n_neighbors):
 
 def get_connectivity(dataframe, i, j, j_index):
     """Gets the connectivity value from a given dataframe"""
-    i_class = dataframe.iloc[i]["class"]
-    j_class = dataframe.iloc[j]["class"]
+    i_class = dataframe.iloc[i]["cluster"]
+    j_class = dataframe.iloc[j]["cluster"]
     state = (0 if i_class == j_class else float(1)/(j_index + 1))
     return state
 
 def connectivity_samples(X, y, n_neighbors, metric=None, distance_matrix=None, **kwds):
     """Calculates the connectivity for each sample in the dataset."""
     dataframe = pd.DataFrame(data=X, index=range(len(X)))
-    dataframe["class"] = y
+    dataframe["cluster"] = y
     N = len(X)
     
     if distance_matrix is None:
@@ -311,6 +311,6 @@ def calculate_connectivity(X_train, y_train, columns, n_neighbors, metric=None, 
     si_samples = connectivity_samples(X_train, y_train, n_neighbors, metric, distance_matrix)
     dataframe = pd.DataFrame(data=X_train, columns=columns, index=range(0, len(y_train)))
     dataframe["CONN"] = si_samples
-    dataframe["class"] = y_train
+    dataframe["cluster"] = y_train
     #sorted_dataframe = dataframe.sort_values(["CONN"], ascending=[True])
     return dataframe

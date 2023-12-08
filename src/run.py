@@ -2,6 +2,7 @@ from EdgeCluster import EdgeCluster
 import initial_clustering as ic
 import preprocessing_windows as pw
 from utils import draw_graph, get_label, summary, write_to_csv, move_data, preprocessing_final_dataset
+from metrics import evalutation_report
 import time
 import pandas as pd
 
@@ -60,7 +61,24 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
     write_to_csv(filename='final_minitoring', 
                     data=monitoring_df, 
                     path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{batch_size}'])
-    return list_of_clustering_solutions
+    
+    segments = final_df['segment'].unique()
+    metrics = []
+    for segment in segments:
+        df = final_df[final_df['segment'] == segment]
+        
+        connectivity, F1, SI, homogeneity = evalutation_report(data=df[df.columns[:-4]], pred_labels=final_df['cluster'].values, true_labels=final_df['target'].values)
+        metrics_df =  pd.DataFrame({
+            'connectivity': [connectivity],
+            'F1': [F1],
+            'SI': [SI],
+            'homogeneity': [homogeneity],
+            'segment': [segment],
+            'stream': [stream_number]
+        })
+        metrics.append(metrics_df)
+    
+    return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False)
 
 def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
     """
@@ -91,16 +109,45 @@ if __name__ == '__main__':
     size_windows = [3, 5, 10]   # number of samples
     start_time = time.time()
     
+    final_data_metrics = []
     for stream_num in range(3):
+        all_metrics = []
         for size in size_windows:
             print(f"Starting size {size}")
             # 3-streams with 2-dimensional data
-            experiment_synthetic_data(num_dimentions=2, stream_number=stream_num, num_segments=10, batch_size=size)
-    # for stream_num in range(12):
+            _, metrics = experiment_synthetic_data(num_dimentions=2, stream_number=stream_num, num_segments=10, batch_size=size)
+            metrics['size'] = metrics.shape[0] * [size]
+            all_metrics.append(metrics)
+        final_stream_metrics_df = pd.concat(all_metrics, ignore_index=True, sort=False)
+        final_data_metrics.append(final_stream_metrics_df)
+        write_to_csv(filename='metrics', 
+                data=final_stream_metrics_df, 
+                path = ['..', 'results', 'synthetic', '2', 'tabular', f'stream {stream_num}'])
+    
+    final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
+    connectivity, F1, SI, homogeneity = evalutation_report(data=final_data_metrics_df[final_data_metrics_df.columns[:-4]], pred_labels=final_data_metrics_df['cluster'].values, true_labels=final_data_metrics_df['target'].values)
+    metrics_df =  pd.DataFrame({
+        'connectivity': [connectivity],
+        'F1': [F1],
+        'SI': [SI],
+        'homogeneity': [homogeneity]
+    })
+    write_to_csv(filename='metrics', 
+                data=metrics_df, 
+                path = ['..', 'results', 'synthetic', '2', 'tabular'])
+        
+    # for stream_num in range(12): 
+        # all_metrics = []
     #     for size in size_windows:
     #         print(f"Starting size {size}") 
     #         # 12-streams with 8-dimensional data
-    #         experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
+    #         _, metrics = experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
+        #     metrics['size'] = metrics.shape[0] * [size]
+        #     all_metrics.append(metrics)
+        # write_to_csv(filename='metrics', 
+        #         data=pd.concat(all_metrics, ignore_index=True, sort=False), 
+        #         path = ['..', 'results', 'synthetic', '2', 'tabular', f'stream {stream_num}'])
+        
     # print("--- %s seconds ---" % (time.time() - start_time))
     
     # # Experiment with AMPDS2 dataset
