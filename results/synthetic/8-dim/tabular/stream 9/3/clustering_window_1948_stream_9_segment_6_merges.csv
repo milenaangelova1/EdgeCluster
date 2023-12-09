@@ -1,8 +1,8 @@
-cluster high,cluster low,cluster mean,cluster label,cluster stream,window high,window low,window mean,window label,window stream,is the cluster and the window deviated,is the cluster and the window matched,cluster labels that are merged together into a cluster,new clusters (labels)
+cluster high,cluster low,cluster mean,cluster label,cluster stream,window high,window low,window mean,window label,window stream,is the cluster and the window deviated,is the cluster and the window matched,cluster labels that are merged together into a cluster,new clusters (labels),index
 "[0.75843143 0.82633931 0.53745552 0.36643592 0.7695068  0.96477768
  0.44794445 0.34636346]","[0.0370772  0.77276572 0.24091213 0.21755145 0.6195714  0.28507435
  0.13190372 0.01282157]","[0.39775431 0.79955252 0.38918383 0.29199368 0.6945391  0.62492601
  0.28992408 0.17959251]",9,7,"[0.80738636 0.77819356 0.74038582 0.65485444 0.8786753  0.36158667
  0.44245146 0.97803709]","[0.05029855 0.62999355 0.24298988 0.22901775 0.63387653 0.29647601
  0.05634837 0.33727586]","[0.42884246 0.70409356 0.49168785 0.44193609 0.75627592 0.32903134
- 0.24939992 0.65765648]",9,6,False,False,[8],[]
+ 0.24939992 0.65765648]",9,6,False,False,[8],[],1948

@@ -11,7 +11,7 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
     Experiment: runs Edge Cluster over synthetic data.
     """
     list_of_windows = pw.synthetic(num_dimentions, stream_number=stream_number, num_segments=num_segments, batch_size=batch_size)
-    initial_clustering = ic.synthetic(num_dimentions, stream_number=stream_number)
+    initial_clustering = ic.synthetic(num_dimentions, stream_number=stream_number, size=batch_size)
     if plots:
         draw_graph(df_metrics = initial_clustering['clustering_metrics'],
                 window_metrics={},
@@ -67,12 +67,22 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
     for segment in segments:
         df = final_df[final_df['segment'] == segment]
         
-        connectivity, F1, SI, homogeneity = evalutation_report(data=df[df.columns[:-4]], pred_labels=final_df['cluster'].values, true_labels=final_df['target'].values)
+        metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df['cluster'].values, true_labels=df['target'].values)
         metrics_df =  pd.DataFrame({
-            'connectivity': [connectivity],
-            'F1': [F1],
-            'SI': [SI],
-            'homogeneity': [homogeneity],
+            'connectivity': [metrics_dict["connectivity"]],
+            'F1': [metrics_dict["F1"]],
+            'SI': [metrics_dict["SI"]],
+            'homogeneity': [metrics_dict["homogeneity"]],
+            "RI": [metrics_dict["RI"]],
+            "ARI": [metrics_dict["ARI"]],
+            "MI": [metrics_dict["MI"]],
+            "NMI": [metrics_dict["NMI"]],
+            "AMI": [metrics_dict["AMI"]],
+            "CS": [metrics_dict["CS"]],
+            "V": [metrics_dict["V"]],
+            "FMI": [metrics_dict["FMI"]],
+            "S": [metrics_dict["S"]],
+            "DB": [metrics_dict["DB"]],
             'segment': [segment],
             'stream': [stream_number]
         })
@@ -106,9 +116,10 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
 
 if __name__ == '__main__':
     # Experiment with synthetic data
-    size_windows = [3, 5, 10]   # number of samples
+    size_windows = [3, 5, 10, 100, 500, 1000]   # number of samples
     start_time = time.time()
     
+    # Experiment 3-streams with 2-dimensional data
     final_data_metrics = []
     for stream_num in range(3):
         all_metrics = []
@@ -122,33 +133,34 @@ if __name__ == '__main__':
         final_data_metrics.append(final_stream_metrics_df)
         write_to_csv(filename='metrics', 
                 data=final_stream_metrics_df, 
-                path = ['..', 'results', 'synthetic', '2', 'tabular', f'stream {stream_num}'])
+                path = ['..', 'results', 'synthetic', '2-dim', 'tabular', f'stream {stream_num}', f'{size}'])
     
     final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
-    connectivity, F1, SI, homogeneity = evalutation_report(data=final_data_metrics_df[final_data_metrics_df.columns[:-4]], pred_labels=final_data_metrics_df['cluster'].values, true_labels=final_data_metrics_df['target'].values)
-    metrics_df =  pd.DataFrame({
-        'connectivity': [connectivity],
-        'F1': [F1],
-        'SI': [SI],
-        'homogeneity': [homogeneity]
-    })
-    write_to_csv(filename='metrics', 
-                data=metrics_df, 
-                path = ['..', 'results', 'synthetic', '2', 'tabular'])
+    write_to_csv(filename='final_evalution_metrics', 
+                data=final_data_metrics_df, 
+                path = ['..', 'results', 'synthetic', '2-dim', 'tabular'])
+
+    # Experiment 12-streams with 8-dimensional data
+    final_data_metrics = []  
+    for stream_num in range(12): 
+        all_metrics = []
+        for size in size_windows:
+            print(f"Starting size {size}") 
+            _, metrics = experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
+            metrics['size'] = metrics.shape[0] * [size]
+            all_metrics.append(metrics)
+        final_stream_metrics_df = pd.concat(all_metrics, ignore_index=True, sort=False)
+        final_data_metrics.append(final_stream_metrics_df)
+        write_to_csv(filename='metrics', 
+                data=pd.concat(all_metrics, ignore_index=True, sort=False), 
+                path = ['..', 'results', 'synthetic', '8-dim', 'tabular', f'stream {stream_num}', f'{size}'])
         
-    # for stream_num in range(12): 
-        # all_metrics = []
-    #     for size in size_windows:
-    #         print(f"Starting size {size}") 
-    #         # 12-streams with 8-dimensional data
-    #         _, metrics = experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
-        #     metrics['size'] = metrics.shape[0] * [size]
-        #     all_metrics.append(metrics)
-        # write_to_csv(filename='metrics', 
-        #         data=pd.concat(all_metrics, ignore_index=True, sort=False), 
-        #         path = ['..', 'results', 'synthetic', '2', 'tabular', f'stream {stream_num}'])
+    final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
+    write_to_csv(filename='final_evalution_metrics', 
+                data=final_data_metrics_df, 
+                path = ['..', 'results', 'synthetic', '8-dim', 'tabular'])
         
-    # print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s seconds ---" % (time.time() - start_time))
     
     # # Experiment with AMPDS2 dataset
     # start_time = time.time()

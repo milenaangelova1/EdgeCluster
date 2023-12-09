@@ -4,21 +4,65 @@ import pandas as pd
 import numpy as np
 import copy
 from clustering import calculate_distances
-from sklearn.metrics import pairwise_distances, homogeneity_score, silhouette_score
+from sklearn.metrics import (pairwise_distances, homogeneity_score, silhouette_score, rand_score, adjusted_rand_score, fowlkes_mallows_score, completeness_score,
+    v_measure_score,mutual_info_score,
+    normalized_mutual_info_score,
+    adjusted_mutual_info_score,
+    rand_score, adjusted_rand_score,
+    davies_bouldin_score,
+    calinski_harabasz_score)
 
-def evalutation_report(data, pred_labels, true_labels=None):
+def evalutation_report(data, pred_labels, true_labels=[]):
     F1 = None
     _homogeneity_score = None
+    SI = None
+    connectivity = None
+    RI = None
+    ARI = None
+    MI = None
+    NMI = None
+    AMI = None
+    CS = None
+    V = None
+    FMI = None
+    s = None
+    DB = None
     distances = calculate_distances(data.to_numpy(copy=True))
     connectivity = calculate_connectivity(data, 
                                         pred_labels,
                                         [x for x in range(data.shape[1])],
-                                        10, distance_matrix=distances)['CONN'].sum()
-    SI = calculate_silhouette(data, pred_labels)
-    if true_labels != None:
+                                        3, distance_matrix=distances)['CONN'].sum()
+    if len(set(pred_labels)) > 1:
+        SI = calculate_silhouette(data, pred_labels)
+        s = calinski_harabasz_score(data, pred_labels)
+        DB = davies_bouldin_score(data, pred_labels)
+    if len(true_labels) > 1:
         F1 = f_measure(pred_labels, true_labels)
         _homogeneity_score = homogeneity_score(true_labels, pred_labels)
-    return connectivity, F1, SI, _homogeneity_score
+        RI = rand_score(true_labels, pred_labels)
+        ARI = adjusted_rand_score(true_labels, pred_labels)
+        MI = mutual_info_score(true_labels, pred_labels)
+        NMI = normalized_mutual_info_score(true_labels, pred_labels)
+        AMI = adjusted_mutual_info_score(true_labels, pred_labels)
+        CS = completeness_score(true_labels, pred_labels)
+        V = v_measure_score(true_labels, pred_labels, beta=1.0)
+        FMI = fowlkes_mallows_score(true_labels, pred_labels)
+    return {
+        "connectivity": connectivity, 
+        "F1": F1, 
+        "SI": SI, 
+        "homogeneity":_homogeneity_score,
+        "RI": RI,
+        "ARI": ARI,
+        "MI": MI,
+        "NMI": NMI,
+        "AMI": AMI,
+        "CS": CS,
+        "V": V,
+        "FMI": FMI,
+        "S": s,
+        "DB": DB
+    }
 
 # F1
 def f_measure(pred, true):
