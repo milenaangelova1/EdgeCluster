@@ -27,9 +27,9 @@ def synthetic(num_dimentions=2, stream_number=0, size=3):
         'data': df,
         'stream': [stream_number] * df.shape[0],
         'segment': [0] * df.shape[0],
-        'targets': list(df['cluster'].values)
+        'targets': list(df['cluster'].values),
+        'is_included': df.shape[0] * [True]
     })
-    
     df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{size}', f'initial_clustering_value_counts.csv'))
     df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{size}', f'initial_clustering_data.csv'))
 
@@ -58,6 +58,8 @@ def synthetic(num_dimentions=2, stream_number=0, size=3):
            
     # calculate the high, low and mean of each window    
     # save the data somewhere as files
+
+    clustering[0]['data']['is_included'] = clustering[0]['data'].shape[0] * [True]
 
     return {
         "clustering": clustering,

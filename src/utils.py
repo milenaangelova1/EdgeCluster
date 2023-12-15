@@ -304,7 +304,7 @@ def draw_graph(df_metrics, window_metrics, filename: str, title: str, xaxis_labe
 
     plt.savefig(os.path.join(path, f'{batch_size}', f'{filename}.png'))
     plt.ioff()
-
+    
 def preprocess_metrics(list_of_clusters):
     highs, lows, means, clusters = [], [], [], []
     
@@ -369,6 +369,8 @@ def move_data(initial_clustering, clustering, list_of_windows):
     """
     merges = clustering['changes']['merges']
     windows = clustering['changes']['windows']
+    deviated = clustering['changes']['deviated']
+    matched = clustering['changes']['matched']
 
     cluster = clustering['closed_cluster']['cluster']
     window = clustering['window']
@@ -384,8 +386,20 @@ def move_data(initial_clustering, clustering, list_of_windows):
         cluster_label = window['cluster']
         add_cluster_label(window_data, cluster_label)
         add_window_data(initial_clustering, window_data, segment, stream, target)
+    elif deviated or matched:
+        window_data, segment, stream, target = find_window(list_of_windows, window)
+        sorted_results = sorted(initial_clustering['clustering'][0]['data']['cluster'].unique(), reverse=True)
+        cluster_label = sorted_results[0] + 1
+        window_data['cluster'] = cluster_label
+        add_window_data(initial_clustering, window_data, segment, stream, target, is_included=False)
+    else:
+        window_data, segment, stream, target = find_window(list_of_windows, window)
+        window_data['cluster'] = cluster
+        # Union between them
+        add_window_data(initial_clustering, window_data, segment, stream, target)
 
-def add_window_data(initial_clustering, window_data, segment, stream, target):
+def add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True):
+    window_data['is_included'] = window_data.shape[0] * [is_included]
     initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
     initial_clustering['clustering'][0]['segment'] = initial_clustering['clustering'][0]['segment'] + segment
     initial_clustering['clustering'][0]['stream'] = initial_clustering['clustering'][0]['stream'] + stream

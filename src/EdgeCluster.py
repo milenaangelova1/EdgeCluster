@@ -51,17 +51,16 @@ class EdgeCluster:
             cluster = recalculate_window_params(cluster, window)
             for j in initial_clustering:
                 if cluster['cluster'] != j['cluster'] and ((dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['high']) <= dist(j['mean'], j['high']))):
-                        # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
-                        # merge clusters c and j. Merging will be union
-                        cluster = recalculate_window_params(cluster, window)
-                        # find and change the cluster into initial clustering solution
-                        update_initial_clustering(cluster, initial_clustering)
-                        remove_cluster_from_clustering(initial_clustering, cluster_for_removing = j)
-                        merges.append(j['cluster'])
+                    # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
+                    # merge clusters c and j. Merging will be union
+                    cluster = recalculate_window_params(cluster, window)
+                    # find and change the cluster into initial clustering solution
+                    update_initial_clustering(cluster, initial_clustering)
+                    remove_cluster_from_clustering(initial_clustering, cluster_for_removing = j)
+                    merges.append(j['cluster'])
                 
         elif (dist(cluster['low'], cluster['mean']) < dist(cluster['mean'], window['mean'])) and (dist(cluster['mean'], window['mean']) > dist(window['mean'], window['high'])):
             # (D(l_i, m_i) < D(m_i, m_w)) and (D(m_i, m_w) > D(m_w, h_w))
-            # merge c with w
             # the merging will be union between both
             sorted_results = sorted(initial_clustering, key=lambda x: x['cluster'], reverse=True)
             cluster_label = sorted_results[0]['cluster'] + 1
