@@ -1,4 +1,4 @@
-cluster high,cluster low,cluster mean,cluster label,cluster stream,window high,window low,window mean,window label,window stream,is the cluster and the window deviated,is the cluster and the window matched,cluster labels that are merged together into a cluster,new clusters (labels),index
-[0.06515348 0.60481645],[0.0069708  0.08390688],[0.03606214 0.34436167],0,5,[0.97249604 0.60927797],[0.12536512 0.10815298],[0.54893058 0.35871548],0.0,4.0,False,True,[],[],758
-[1.00117344 0.2107639 ],[0.10278657 0.1119751 ],[0.55198   0.1613695],0,8,,,,,,,,,,758
-[0.95310783 0.91565271],[0.86784794 0.11973152],[0.91047788 0.51769212],0,9,,,,,,,,,,758
+closed cluster high,closed cluster low,closed cluster mean,closed cluster label,closed cluster stream,cluster high,cluster low,cluster mean,cluster label,cluster stream,window high,window low,window mean,window label,window stream,is the cluster and the window deviated,is the cluster and the window matched,cluster labels that are merged together into a cluster,new clusters (labels),index
+[1.00117344 0.2107639 ],[0.10278657 0.1119751 ],[0.55198   0.1613695],0.0,8.0,[0.06515348 0.60481645],[0.0069708  0.08390688],[0.03606214 0.34436167],0,5,[0.96990079 0.64895337],[0.10223147 0.13812683],[0.53606613 0.3935401 ],0.0,4.0,False,True,[],[],759
+,,,,,[1.00117344 0.2107639 ],[0.10278657 0.1119751 ],[0.55198   0.1613695],0,8,,,,,,,,,,759
+,,,,,[0.95310783 0.91565271],[0.86784794 0.11973152],[0.91047788 0.51769212],0,9,,,,,,,,,,759

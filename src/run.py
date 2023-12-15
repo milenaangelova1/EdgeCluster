@@ -20,35 +20,36 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
                 xaxis_label='Feature 1', 
                 yaxis_label='Feature 2', 
                 batch_size=batch_size,
-                path=['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots', f'stream {stream_number}'])
+                path=['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots', f'stream {stream_number}'],
+                initial_graph=True)
         
     # keep all the clustering solutions
     # the latest one is the final one
     list_of_clustering_solutions = []
     dfs = []
     for index, window in enumerate(list_of_windows['clustering_metrics']):
-        print(f"Start processing a window {index}")
+        print(f"Start processing a window {index + 1}")
         clustering = EdgeCluster().fit(window, initial_clustering['clustering_metrics'])
         move_data(initial_clustering, clustering, list_of_windows)
-        print(f"The EdgeCluster completed for a window {index}")
-        print(f"Start plotting a graph for a window {index}")
+        print(f"The EdgeCluster completed for a window {index + 1}")
+        print(f"Start plotting a graph for a window {index + 1}")
         if plots:
-            draw_graph(df_metrics = clustering['clustering'],
+            draw_graph(df_metrics = clustering,
                 window_metrics=[window],
-                filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
+                filename=f'clustering_window_{index}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
                 title=f'Clustering of {num_dimentions}-dim data for window {index + 1}', 
                 xaxis_label='Feature 1', 
                 yaxis_label='Feature 2', 
                 batch_size=batch_size,
                 path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'plots', f'stream {stream_number}'])
-        print(f"The graph for a window {index} was plotted")
+        print(f"The graph for a window {index + 1} was plotted")
         list_of_clustering_solutions.append(clustering)
-        print(f"Summary for a window {index}")
+        print(f"Summary for a window {index + 1}")
         df = summary(clustering)
-        print(f"Write a csv for a window {index}")
+        print(f"Write a csv for a window {index + 1}")
         df['index'] = df.shape[0] * [index + 1]
         dfs.append(df)
-        write_to_csv(filename=f'clustering_window_{index + 1}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
+        write_to_csv(filename=f'clustering_window_{index}_stream_{window["stream"]}_segment_{window["segment"]}_{get_label(clustering)}', 
                      data=df,
                      path = ['..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{batch_size}'])
     
@@ -121,7 +122,7 @@ if __name__ == '__main__':
     
     # Experiment 3-streams with 2-dimensional data
     final_data_metrics = []
-    for stream_num in range(3):
+    for stream_num in [0, 1, 2]:
         all_metrics = []
         for size in size_windows:
             print(f"Starting size {size}")
@@ -141,26 +142,26 @@ if __name__ == '__main__':
                 path = ['..', 'results', 'synthetic', '2-dim', 'tabular'])
 
     # Experiment 12-streams with 8-dimensional data
-    final_data_metrics = []  
-    for stream_num in range(12): 
-        all_metrics = []
-        for size in size_windows:
-            print(f"Starting size {size}") 
-            _, metrics = experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
-            metrics['size'] = metrics.shape[0] * [size]
-            all_metrics.append(metrics)
-        final_stream_metrics_df = pd.concat(all_metrics, ignore_index=True, sort=False)
-        final_data_metrics.append(final_stream_metrics_df)
-        write_to_csv(filename='metrics', 
-                data=pd.concat(all_metrics, ignore_index=True, sort=False), 
-                path = ['..', 'results', 'synthetic', '8-dim', 'tabular', f'stream {stream_num}', f'{size}'])
+    # final_data_metrics = []  
+    # for stream_num in range(12): 
+    #     all_metrics = []
+    #     for size in size_windows:
+    #         print(f"Starting size {size}") 
+    #         _, metrics = experiment_synthetic_data(num_dimentions=8, stream_number=stream_num, num_segments=10, batch_size=size, plots=False)
+    #         metrics['size'] = metrics.shape[0] * [size]
+    #         all_metrics.append(metrics)
+    #     final_stream_metrics_df = pd.concat(all_metrics, ignore_index=True, sort=False)
+    #     final_data_metrics.append(final_stream_metrics_df)
+    #     write_to_csv(filename='metrics', 
+    #             data=pd.concat(all_metrics, ignore_index=True, sort=False), 
+    #             path = ['..', 'results', 'synthetic', '8-dim', 'tabular', f'stream {stream_num}', f'{size}'])
         
-    final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
-    write_to_csv(filename='final_evalution_metrics', 
-                data=final_data_metrics_df, 
-                path = ['..', 'results', 'synthetic', '8-dim', 'tabular'])
+    # final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
+    # write_to_csv(filename='final_evalution_metrics', 
+    #             data=final_data_metrics_df, 
+    #             path = ['..', 'results', 'synthetic', '8-dim', 'tabular'])
         
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # print("--- %s seconds ---" % (time.time() - start_time))
     
     # # Experiment with AMPDS2 dataset
     # start_time = time.time()

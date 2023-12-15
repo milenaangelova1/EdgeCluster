@@ -95,7 +95,7 @@ def find_the_closest_cluster(w: dict, C: list) -> dict:
         min_dist = sorted_results[0]['cluster']
         sorted_results.append({
             "window": w,
-            "cluster": c,
+            "cluster": min_dist['cluster'],
             "dist": min_dist
         })
     
@@ -258,17 +258,20 @@ def calculate_points(higher_point: dict, lower_point: dict):
     point_4 = [point_2[0], point_1[1]]
     return point_1, point_2, point_3, point_4
 
-def draw_graph(df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, batch_size: int, path: str):
+def draw_graph(df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, batch_size: int, path: str, initial_graph=False):
     plt.rcParams["figure.autolayout"] = True
     plt.clf()
 
     if len(df_metrics) == 0:
         return
     
-    handles, clusters = plot_rectangles(df_metrics)
+    if initial_graph:
+        handles, clusters = plot_rectangles(df_metrics)
+    else:
+        handles, clusters = plot_rectangles(df_metrics['clustering'])
 
     if window_metrics:
-        highs, lows = preprocess_metrics(df_metrics)
+        highs, lows = preprocess_metrics([df_metrics['closed_cluster']])
         # plot cluster vectors
         point_1, point_2, point_3, point_4 = calculate_points(highs, lows)
         x_values = [[point_1[0], point_4[0]], [point_4[0], point_2[0]], [point_2[0], point_3[0]], [point_3[0], point_1[0]]]
@@ -355,7 +358,7 @@ def summary(final_clustering):
     changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows']])
     changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster', 'new clusters (labels)']
 
-    df = pd.concat([cluster_df, window_df, changes_df], axis=1)
+    df = pd.concat([closed_cluster_df, cluster_df, window_df, changes_df], axis=1)
     return df
 
 def move_data(initial_clustering, clustering, list_of_windows):
