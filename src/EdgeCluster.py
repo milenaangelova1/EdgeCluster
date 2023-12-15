@@ -50,7 +50,7 @@ class EdgeCluster:
             # merging c and w and recalculating the window - low, high, and mean vectors.
             cluster = recalculate_window_params(cluster, window)
             for j in initial_clustering:
-                if cluster['cluster'] != j['cluster'] and ((dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['high']) <= dist(j['mean'], j['high']))):
+                if cluster['cluster'] != j['cluster'] and ((dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['mean']) <= dist(j['mean'], j['high']))):
                     # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
                     # merge clusters c and j. Merging will be union
                     cluster = recalculate_window_params(cluster, window)
