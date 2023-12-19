@@ -11,6 +11,63 @@ from utils import write_to_csv
 
 from src.utils import calculate_hyper_rectangle_features
 
+
+def s1(size: int):
+    """
+    Preprocessing the S1 data.
+
+    :param: size
+
+    :returns: pre-processed s1 data
+    """
+    clustering = []
+    # read the data 
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 's1', 'original', '0.csv'))
+    df = df[df.columns[0:-1]]
+
+    clustering.append({
+        'data': df,
+        'segment': [0] * df.shape[0],
+        'stream': ['-'] * df.shape[0],
+        'targets': list(df['cluster'].values),
+        'is_included': df.shape[0] * [True]
+    })
+    df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
+    df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', 'tabular', f'{size}', f'initial_clustering_data.csv'))
+
+    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values)
+    metrics_df =  pd.DataFrame({
+            'connectivity': [metrics_dict["connectivity"]],
+            'SI': [metrics_dict["SI"]],
+            'S': [metrics_dict["S"]],
+            "DB": [metrics_dict["DB"]]
+        })
+    write_to_csv(filename='initial_clustering_metrics', 
+                data=metrics_df, 
+                path = ['..', 'results', 's1', 'tabular', f'{size}'])
+
+    list_clusters_with_metrics = []
+    for cluster in clustering:
+        df = cluster['data']
+        cluster_labels = df['cluster'].unique()
+        for label in cluster_labels:
+            c = df[df['cluster'] == label]
+            # find the high, low and mean vectors of each cluster
+            cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
+            cluster_metrics['cluster'] = label
+            cluster_metrics['stream'] = cluster['stream']
+            list_clusters_with_metrics.append(cluster_metrics)
+           
+    # calculate the high, low and mean of each window    
+    # save the data somewhere as files
+
+    clustering[0]['data']['is_included'] = clustering[0]['data'].shape[0] * [True]
+
+    return {
+        "clustering": clustering,
+        "clustering_metrics": list_clusters_with_metrics
+    }
+
 def synthetic(num_dimentions=2, stream_number=0, size=3):
     """
     Preprocessing the synthetic data. The data is presented in 2 or 8 dimentional data

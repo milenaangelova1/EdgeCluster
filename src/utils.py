@@ -115,6 +115,7 @@ def update_initial_clustering(cluster_metrics, initial_clustering):
 def remove_cluster_from_clustering(initial_clustering, cluster_for_removing):
     index = next((index for (index, d) in enumerate(initial_clustering) if d["cluster"] == cluster_for_removing['cluster']), None)
     del initial_clustering[index]
+    return initial_clustering
 
 def write_to_csv(filename, data, path):
     if data.empty:
