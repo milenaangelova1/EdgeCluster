@@ -26,7 +26,7 @@ def s1(num_segments: int, batch_size: int):
                 new_df = df.iloc[index:index + batch_size, :]
                 clustering.append({
                     'data': new_df.drop(['cluster'], axis=1),
-                    'stream': '-',
+                    'stream': -1,
                     'segment': segment,
                     'target': new_df['cluster']
                 })

@@ -203,7 +203,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
     return list_of_clustering_solutions
 
 if __name__ == '__main__':
-    size_windows = [12, 24]   # number of samples
+    size_windows = [3, 5, 10, 12, 24]   # number of samples
     start_time = time.time()
 
     # Experiment with S1 data

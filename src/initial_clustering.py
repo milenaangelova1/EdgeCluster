@@ -28,7 +28,7 @@ def s1(size: int):
     clustering.append({
         'data': df,
         'segment': [0] * df.shape[0],
-        'stream': ['-'] * df.shape[0],
+        'stream': [-1] * df.shape[0],
         'targets': list(df['cluster'].values),
         'is_included': df.shape[0] * [True]
     })

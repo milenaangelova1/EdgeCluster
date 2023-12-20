@@ -163,7 +163,7 @@ cython_debug/
 # VS Code
 .vscode/
 .history/
-results/first_results.zip
+results/*.zip
 .DS_Store
 .idea/
 src/__pycache__/

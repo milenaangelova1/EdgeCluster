@@ -58,17 +58,21 @@ def recalculate_window_params(c: dict, w: dict) -> dict:
     :returns: c - with new values for high, low and mean.
     """
     
-    lows_df = pd.DataFrame([c['low'], w['low']])
-    highs_df = pd.DataFrame([c['high'], w['high']])
+    # lows_df = pd.DataFrame([c['low'], w['low']])
+    # highs_df = pd.DataFrame([c['high'], w['high']])
 
-    highs = highs_df.max()
-    lows = lows_df.min()
-    means = (highs + lows) / 2
+    # highs = highs_df.max()
+    # lows = lows_df.min()
+    # means = (highs + lows) / 2
+
+    average_high = (c['high'] + w['high']) / 2
+    average_low = (c['low'] + w['low']) / 2
+    average_mean = (average_high + average_low) / 2
 
     return {
-        "high": np.array(highs), 
-        "low": np.array(lows),
-        "mean": np.array(means),
+        "high": np.array(average_high), 
+        "low": np.array(average_low),
+        "mean": np.array(average_mean),
         "cluster": c['cluster'], 
         "stream": c['stream']
     }
