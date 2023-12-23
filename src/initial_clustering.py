@@ -37,10 +37,10 @@ def s1(size: int):
 
     metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values)
     metrics_df =  pd.DataFrame({
-            'connectivity': [metrics_dict["connectivity"]],
-            'SI': [metrics_dict["SI"]],
-            'S': [metrics_dict["S"]],
-            "DB": [metrics_dict["DB"]]
+            'connectivity': [metrics_dict['connectivity']],
+            'SI': [metrics_dict['SI']],
+            'S': [metrics_dict['S']],
+            'DB': [metrics_dict['DB']]
         })
     write_to_csv(filename='initial_clustering_metrics', 
                 data=metrics_df, 
@@ -55,7 +55,9 @@ def s1(size: int):
             # find the high, low and mean vectors of each cluster
             cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
             cluster_metrics['cluster'] = label
+            cluster_metrics['segment'] = cluster['segment']
             cluster_metrics['stream'] = cluster['stream']
+            cluster_metrics['cluster_value_count'] = c.shape[0]
             list_clusters_with_metrics.append(cluster_metrics)
            
     # calculate the high, low and mean of each window    
@@ -85,7 +87,8 @@ def synthetic(num_dimentions=2, stream_number=0, size=3):
         'stream': [stream_number] * df.shape[0],
         'segment': [0] * df.shape[0],
         'targets': list(df['cluster'].values),
-        'is_included': df.shape[0] * [True]
+        'is_included': df.shape[0] * [True],
+        'cluster_value_counts': dict(df['cluster'].value_counts())
     })
     df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{size}', f'initial_clustering_value_counts.csv'))
     df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{size}', f'initial_clustering_data.csv'))

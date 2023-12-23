@@ -44,6 +44,7 @@ def s1(num_segments: int, batch_size: int):
         cluster_metrics = calculate_hyper_rectangle_features(df)
         cluster_metrics['segment'] = cluster['segment']
         cluster_metrics['stream'] = cluster['stream']
+        cluster_metrics['cluster_value_count'] = batch_size
         list_clusters_with_metrics.append(cluster_metrics)
 
     # calculate the high, low and mean of each window    

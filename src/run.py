@@ -1,7 +1,12 @@
 from EdgeCluster import EdgeCluster
 import initial_clustering as ic
 import preprocessing_windows as pw
-from utils import draw_graph, get_label, summary, write_to_csv, move_data, preprocessing_final_dataset
+from utils import (draw_graph, 
+                   get_label, 
+                   summary, 
+                   write_to_csv, 
+                   move_data, 
+                   preprocessing_final_dataset)
 from metrics import evalutation_report
 import time
 import pandas as pd
@@ -12,7 +17,7 @@ def experiment_s1_data(num_segments, batch_size):
     """
     list_of_windows = pw.s1(num_segments=num_segments, batch_size=batch_size)
     initial_clustering = ic.s1(size=batch_size)
-    
+
     draw_graph(df_metrics = initial_clustering['clustering_metrics'],
             window_metrics={},
             filename='initial_clustering', 
@@ -208,17 +213,14 @@ if __name__ == '__main__':
 
     # Experiment with S1 data
     final_data_metrics = []
-    all_metrics = []
     for size in size_windows:
         print(f"Starting size {size}")
         _, metrics = experiment_s1_data(num_segments=4, batch_size=size)
         metrics['size'] = metrics.shape[0] * [size]
-        all_metrics.append(metrics)
-    final_stream_metrics_df = pd.concat(all_metrics, ignore_index=True, sort=False)
-    final_data_metrics.append(final_stream_metrics_df)
-    write_to_csv(filename='metrics', 
-            data=final_stream_metrics_df, 
-            path = ['..', 'results', 's1', 'tabular', f'{size}'])
+        final_data_metrics.append(metrics)
+        write_to_csv(filename='metrics', 
+                data=metrics, 
+                path = ['..', 'results', 's1', 'tabular', f'{size}'])
     
     final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
     write_to_csv(filename='final_evalution_metrics', 

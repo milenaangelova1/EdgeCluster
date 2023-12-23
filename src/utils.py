@@ -1,3 +1,4 @@
+from ast import literal_eval
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -65,18 +66,19 @@ def recalculate_window_params(c: dict, w: dict) -> dict:
     # lows = lows_df.min()
     # means = (highs + lows) / 2
 
-    average_high = (c['high'] + w['high']) / 2
-    average_low = (c['low'] + w['low']) / 2
+    average_high = (c["high"] + w["high"]) / 2
+    average_low = (c["low"] + w["low"]) / 2
     average_mean = (average_high + average_low) / 2
 
     return {
         "high": np.array(average_high), 
         "low": np.array(average_low),
         "mean": np.array(average_mean),
-        "cluster": c['cluster'], 
-        "stream": c['stream']
+        "cluster": c["cluster"], 
+        "segment": c["segment"],
+        "stream": c["stream"],
+        "cluster_value_count": round((c["cluster_value_count"] + w["cluster_value_count"]) / 2)
     }
-
     
 def find_the_closest_cluster(w: dict, C: list) -> dict:
     """
@@ -115,6 +117,8 @@ def update_initial_clustering(cluster_metrics, initial_clustering):
         initial_clustering[index_cluster]['high'] = cluster_metrics['high']
         initial_clustering[index_cluster]['low'] = cluster_metrics['low']
         initial_clustering[index_cluster]['mean'] = cluster_metrics['mean']
+        initial_clustering[index_cluster]['cluster_value_count'] = cluster_metrics['cluster_value_count']
+
     
 def remove_cluster_from_clustering(initial_clustering, cluster_for_removing):
     index = next((index for (index, d) in enumerate(initial_clustering) if d["cluster"] == cluster_for_removing['cluster']), None)
@@ -345,20 +349,20 @@ def get_label(clustering):
     return label
 
 def summary(final_clustering):
-    cluster_df = pd.json_normalize(final_clustering['clustering'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
-    if 'segment' in cluster_df.columns:
-        cluster_df = cluster_df.drop(['segment'], axis=1)
-    cluster_df.columns = ['cluster high', 'cluster low', 'cluster mean', 'cluster label', 'cluster stream']
+    cluster_df = pd.json_normalize(final_clustering['clustering'], meta=[['high', 'low', 'mean', 'cluster', 'segment', 'stream', 'cluster_value_counts']])
+    # if 'segment' in cluster_df.columns:
+    #     cluster_df = cluster_df.drop(['segment', 'size'], axis=1)
+    cluster_df.columns = ['cluster high', 'cluster low', 'cluster mean', 'cluster label', 'cluster segment', 'cluster stream', 'cluster counts']
     
-    closed_cluster_df = pd.json_normalize(final_clustering['closed_cluster'], meta=[['high', 'low', 'mean', 'cluster', 'stream']])
-    if 'segment' in closed_cluster_df.columns:
-        closed_cluster_df = closed_cluster_df.drop(['segment'], axis=1)
-    closed_cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster stream']
+    closed_cluster_df = pd.json_normalize(final_clustering['closed_cluster'], meta=[['high', 'low', 'mean', 'cluster', 'segment', 'stream']])
+    # if 'segment' in closed_cluster_df.columns:
+    #     closed_cluster_df = closed_cluster_df.drop(['segment'], axis=1)
+    closed_cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster segment', 'closed cluster stream', 'closed cluster counts']
 
-    window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream']])
+    window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream', 'cluster_value_count']])
     if 'cluster' in window_df.columns:
         window_df = window_df.drop(['cluster'], axis=1)
-    window_df.columns = ['window high', 'window low', 'window mean', 'window label', 'window stream']
+    window_df.columns = ['window high', 'window low', 'window mean', 'window segment', 'window stream', 'window size']
 
     changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows']])
     changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster', 'new clusters (labels)']
@@ -406,8 +410,8 @@ def move_data(initial_clustering, clustering, list_of_windows):
 def add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True):
     window_data['is_included'] = window_data.shape[0] * [is_included]
     initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
-    initial_clustering['clustering'][0]['segment'] = initial_clustering['clustering'][0]['segment'] + segment
-    initial_clustering['clustering'][0]['stream'] = initial_clustering['clustering'][0]['stream'] + stream
+    initial_clustering['clustering'][0]['segment'] = initial_clustering['clustering'][0]['segment'] + [segment] * window_data.shape[0]
+    initial_clustering['clustering'][0]['stream'] = initial_clustering['clustering'][0]['stream'] + [stream] * window_data.shape[0]
     initial_clustering['clustering'][0]['targets'] = initial_clustering['clustering'][0]['targets'] + target
         
 def find_window(list_of_windows, window):
@@ -415,8 +419,8 @@ def find_window(list_of_windows, window):
     for w in list_of_windows['clustering']:
         if window['stream'] == w['stream'] and window['segment'] == w['segment']:
             window_data = w['data']
-            segment = [w['segment']] * window_data.shape[0]
-            stream = [w['stream']] * window_data.shape[0]
+            segment = w['segment']
+            stream = w['stream']
             target = list(w['target'].values)
             break
     return window_data, segment, stream, target

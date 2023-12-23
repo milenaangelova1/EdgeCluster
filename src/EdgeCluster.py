@@ -1,3 +1,4 @@
+from ast import literal_eval
 from utils import dist, recalculate_window_params, find_the_closest_cluster, update_initial_clustering, remove_cluster_from_clustering
 
 class EdgeCluster:
@@ -49,6 +50,7 @@ class EdgeCluster:
             # (D(l_i, m_i) >= D(m_i, m_w)) or (D(m_i, m_w) <= D(m_w, h_w))
             # merging c and w and recalculating the window - low, high, and mean vectors.
             cluster = recalculate_window_params(cluster, window)
+            update_initial_clustering(cluster, initial_clustering)
             
             for _ in range(len(initial_clustering)):
                 temp_clustering = initial_clustering.copy()
