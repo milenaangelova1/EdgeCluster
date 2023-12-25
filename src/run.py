@@ -58,7 +58,6 @@ def experiment_s1_data(num_segments, batch_size):
                      path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
     
     final_df = preprocessing_final_dataset(initial_clustering['clustering'])
-    # final_df = final_df.drop_duplicates(final_df.columns[:-4], keep='first')
     write_to_csv(filename='final_clustering', 
                     data=final_df,
                     path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])

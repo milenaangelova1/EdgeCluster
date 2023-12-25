@@ -389,7 +389,7 @@ def move_data(initial_clustering, clustering, list_of_windows):
         window_data, segment, stream, target = find_window(list_of_windows, window)
         add_cluster_label(window_data, cluster)
         if not window_data is None:
-            add_window_data(initial_clustering, window_data, segment, stream, target)
+            add_window_data(initial_clustering, window_data, segment, stream, target, is_union=True)
     elif windows:
         window_data, segment, stream, target = find_window(list_of_windows, window)
         cluster_label = window['cluster']
@@ -405,11 +405,22 @@ def move_data(initial_clustering, clustering, list_of_windows):
         window_data, segment, stream, target = find_window(list_of_windows, window)
         window_data['cluster'] = cluster
         # Union between them
-        add_window_data(initial_clustering, window_data, segment, stream, target)
+        add_window_data(initial_clustering, window_data, segment, stream, target, is_union=True)
 
-def add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True):
+def add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True, is_union=False):
     window_data['is_included'] = window_data.shape[0] * [is_included]
-    initial_clustering['clustering'][0]['data'] = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
+    df = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
+    # if is_union:
+    #     df['stream'] = initial_clustering['clustering'][0]['stream'] + [stream] * window_data.shape[0]
+    #     df['segment'] = initial_clustering['clustering'][0]['segment'] + [segment] * window_data.shape[0]
+    #     df['target'] = initial_clustering['clustering'][0]['targets'] + target
+    #     df = df.drop_duplicates(df.columns[:-4], keep='first')
+    #     initial_clustering['clustering'][0]['data'] = df[df.columns[:-4]]
+    #     initial_clustering['clustering'][0]['segment'] = list(df['segment'].values)
+    #     initial_clustering['clustering'][0]['stream'] = list(df['stream'].values)
+    #     initial_clustering['clustering'][0]['targets'] = list(df['target'].values)
+    # else:
+    initial_clustering['clustering'][0]['data'] = df
     initial_clustering['clustering'][0]['segment'] = initial_clustering['clustering'][0]['segment'] + [segment] * window_data.shape[0]
     initial_clustering['clustering'][0]['stream'] = initial_clustering['clustering'][0]['stream'] + [stream] * window_data.shape[0]
     initial_clustering['clustering'][0]['targets'] = initial_clustering['clustering'][0]['targets'] + target
