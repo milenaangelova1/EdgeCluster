@@ -10,7 +10,8 @@ from sklearn.metrics import (pairwise_distances, homogeneity_score, silhouette_s
     adjusted_mutual_info_score,
     rand_score, adjusted_rand_score,
     davies_bouldin_score,
-    calinski_harabasz_score)
+    calinski_harabasz_score,
+    jaccard_score)
 
 def evalutation_report(data, pred_labels, true_labels=[]):
     F1 = None
@@ -27,11 +28,12 @@ def evalutation_report(data, pred_labels, true_labels=[]):
     FMI = None
     s = None
     DB = None
+    JI = None
     distances = calculate_distances(data.to_numpy(copy=True))
-    connectivity = calculate_connectivity(data, 
-                                        pred_labels,
-                                        [x for x in range(data.shape[1])],
-                                        3, distance_matrix=distances)['CONN'].sum()
+    # connectivity = calculate_connectivity(data, 
+    #                                     pred_labels,
+    #                                     [x for x in range(data.shape[1])],
+    #                                     5, distance_matrix=distances)['CONN'].sum()
     if len(set(pred_labels)) > 1:
         SI = calculate_silhouette(data, pred_labels)
         s = calinski_harabasz_score(data, pred_labels)
@@ -47,8 +49,9 @@ def evalutation_report(data, pred_labels, true_labels=[]):
         CS = completeness_score(true_labels, pred_labels)
         V = v_measure_score(true_labels, pred_labels, beta=1.0)
         FMI = fowlkes_mallows_score(true_labels, pred_labels)
+        JI = calculate_jaccard_score(true_labels, pred_labels)
     return {
-        "connectivity": connectivity, 
+        # "connectivity": connectivity, 
         "F1": F1, 
         "SI": SI, 
         "homogeneity":_homogeneity_score,
@@ -61,7 +64,8 @@ def evalutation_report(data, pred_labels, true_labels=[]):
         "V": V,
         "FMI": FMI,
         "S": s,
-        "DB": DB
+        "DB": DB,
+        "JI": JI
     }
 
 # F1
@@ -358,3 +362,6 @@ def calculate_connectivity(X_train, y_train, columns, n_neighbors, metric=None, 
     dataframe["cluster"] = y_train
     #sorted_dataframe = dataframe.sort_values(["CONN"], ascending=[True])
     return dataframe
+
+def calculate_jaccard_score(y_true, y_pred):
+    return jaccard_score(y_true, y_pred, average='weighted')

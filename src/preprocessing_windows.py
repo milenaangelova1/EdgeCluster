@@ -28,7 +28,8 @@ def s1(num_segments: int, batch_size: int):
                     'data': new_df.drop(['cluster'], axis=1),
                     'stream': -1,
                     'segment': segment,
-                    'target': new_df['cluster']
+                    'target': list(new_df['cluster'].values),
+                    'is_included': [False] * new_df.shape[0]
                 })
         else:
             clustering.append({

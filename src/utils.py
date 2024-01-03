@@ -6,6 +6,10 @@ import matplotlib.patches as patches
 import os
 import math
 import matplotlib.colors as mcolors
+from src.colors import COLORS
+
+
+from src.metrics import evalutation_report
 
 def dist(vector1: list, vector2: list) -> float:
     """
@@ -119,7 +123,6 @@ def update_initial_clustering(cluster_metrics, initial_clustering):
         initial_clustering[index_cluster]['mean'] = cluster_metrics['mean']
         initial_clustering[index_cluster]['cluster_value_count'] = cluster_metrics['cluster_value_count']
 
-    
 def remove_cluster_from_clustering(initial_clustering, cluster_for_removing):
     index = next((index for (index, d) in enumerate(initial_clustering) if d["cluster"] == cluster_for_removing['cluster']), None)
     del initial_clustering[index]
@@ -200,6 +203,7 @@ def get_height(cluster):
     return math.sqrt(math.pow(point_1[0] - point_3[0], 2) + math.pow(point_1[1] - point_3[1], 2))
 
 def get_coordinates(clusters):
+    colors = list(COLORS.keys())
     coordinates = []
     for cluster in clusters:
         left, width = cluster['low'][0], get_width(cluster)
@@ -209,44 +213,45 @@ def get_coordinates(clusters):
         right = left + width
         top = bottom + height
 
-        coordinates.append({"left": left, "width": width, "bottom": bottom, "height": height, "right": right, "top": top, "mean": mean})
+        color = colors[cluster['cluster']]
+        coordinates.append({"left": left, "width": width, "bottom": bottom, "height": height, "right": right, "top": top, "mean": mean, "color": color})
     return coordinates
 
 def plot_rectangles(clusters: list):
     # build a rectangle in axes coords
-    colors = list(mcolors.TABLEAU_COLORS.keys())
+   
     handles = []
     coordinates = get_coordinates(clusters)
     clusters = list(map(lambda x: f'Cluster {x["cluster"]}', clusters))
     _, ax = plt.subplots()
 
-    for index, coord in enumerate(coordinates):
+    for _, coord in enumerate(coordinates):
         left = coord['left']
         bottom = coord['bottom']
         width = coord['width']
         height = coord['height']
-        right = coord['right']
-        top = coord['top']
+        # right = coord['right']
+        # top = coord['top']
         mean = coord['mean']
 
-        ax.plot(mean[0], mean[1], 'o', color=mcolors.TABLEAU_COLORS[colors[index]])
+        ax.plot(mean[0], mean[1], 'o', color=COLORS[coord['color']])
 
         p = patches.Rectangle(
                 (left, bottom), width, height,
                 fill=True, clip_on=False,
                 alpha=0.6,
-                facecolor=mcolors.TABLEAU_COLORS[colors[index]]
+                facecolor=COLORS[coord['color']]
                 )
 
         ax.add_patch(p)
 
-        ax.text(left, bottom, 'min',
-                horizontalalignment='left',
-                verticalalignment='top')
+        # ax.text(left, bottom, 'min',
+        #         horizontalalignment='left',
+        #         verticalalignment='top')
 
-        ax.text(right, top, 'max',
-                horizontalalignment='right',
-                verticalalignment='bottom')
+        # ax.text(right, top, 'max',
+        #         horizontalalignment='right',
+        #         verticalalignment='bottom')
 
         handles.append(p)
     return handles, clusters
@@ -389,42 +394,47 @@ def move_data(initial_clustering, clustering, list_of_windows):
         window_data, segment, stream, target = find_window(list_of_windows, window)
         add_cluster_label(window_data, cluster)
         if not window_data is None:
-            add_window_data(initial_clustering, window_data, segment, stream, target, is_union=True)
+            add_window_data(initial_clustering, window_data, segment, stream, target, is_union=False)
     elif windows:
         window_data, segment, stream, target = find_window(list_of_windows, window)
         cluster_label = window['cluster']
         add_cluster_label(window_data, cluster_label)
         add_window_data(initial_clustering, window_data, segment, stream, target)
-    elif deviated or matched:
+    elif deviated:
         window_data, segment, stream, target = find_window(list_of_windows, window)
-        sorted_results = sorted(initial_clustering['clustering'][0]['data']['cluster'].unique(), reverse=True)
-        cluster_label = sorted_results[0] + 1
-        window_data['cluster'] = cluster_label
+        window_data['cluster'] = -1
+        add_window_data(initial_clustering, window_data, segment, stream, target, is_included=False)
+    elif matched:
+        window_data, segment, stream, target = find_window(list_of_windows, window)
+        window_data['cluster'] = cluster
         add_window_data(initial_clustering, window_data, segment, stream, target, is_included=False)
     else:
         window_data, segment, stream, target = find_window(list_of_windows, window)
         window_data['cluster'] = cluster
         # Union between them
-        add_window_data(initial_clustering, window_data, segment, stream, target, is_union=True)
+        add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True, is_union=False)
 
 def add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True, is_union=False):
     window_data['is_included'] = window_data.shape[0] * [is_included]
     df = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
-    # if is_union:
-    #     df['stream'] = initial_clustering['clustering'][0]['stream'] + [stream] * window_data.shape[0]
-    #     df['segment'] = initial_clustering['clustering'][0]['segment'] + [segment] * window_data.shape[0]
-    #     df['target'] = initial_clustering['clustering'][0]['targets'] + target
-    #     df = df.drop_duplicates(df.columns[:-4], keep='first')
-    #     initial_clustering['clustering'][0]['data'] = df[df.columns[:-4]]
-    #     initial_clustering['clustering'][0]['segment'] = list(df['segment'].values)
-    #     initial_clustering['clustering'][0]['stream'] = list(df['stream'].values)
-    #     initial_clustering['clustering'][0]['targets'] = list(df['target'].values)
-    # else:
-    initial_clustering['clustering'][0]['data'] = df
-    initial_clustering['clustering'][0]['segment'] = initial_clustering['clustering'][0]['segment'] + [segment] * window_data.shape[0]
-    initial_clustering['clustering'][0]['stream'] = initial_clustering['clustering'][0]['stream'] + [stream] * window_data.shape[0]
-    initial_clustering['clustering'][0]['targets'] = initial_clustering['clustering'][0]['targets'] + target
-        
+    if is_union:
+        df['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
+        df['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
+        df['target'] = list(initial_clustering['clustering'][0]['targets']) + target
+        df['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
+        df = df.drop_duplicates(df.columns[:-4]).reset_index(drop=True)
+        initial_clustering['clustering'][0]['data'] = df[df.columns[:-3]]
+        initial_clustering['clustering'][0]['segment'] = df['segment']
+        initial_clustering['clustering'][0]['stream'] = df['stream']
+        initial_clustering['clustering'][0]['targets'] = df['target']
+        initial_clustering['clustering'][0]['is_included'] = df['is_included']
+    else:
+        initial_clustering['clustering'][0]['data'] = df
+        initial_clustering['clustering'][0]['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
+        initial_clustering['clustering'][0]['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
+        initial_clustering['clustering'][0]['targets'] = list(initial_clustering['clustering'][0]['targets']) + target
+        initial_clustering['clustering'][0]['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
+            
 def find_window(list_of_windows, window):
     window_data = None
     for w in list_of_windows['clustering']:
@@ -432,10 +442,36 @@ def find_window(list_of_windows, window):
             window_data = w['data']
             segment = w['segment']
             stream = w['stream']
-            target = list(w['target'].values)
+            target = w['target']
             break
     return window_data, segment, stream, target
 
 def add_cluster_label(clustering, cluster):
-    clustering['cluster'] = clustering.shape[0] * [cluster]
+    clustering["cluster"] = clustering.shape[0] * [cluster]
+
+def evaluation_metrics(final_df, segment, is_included=False):
+    if is_included:
+        df = final_df[final_df["is_included"] == True]
+    df = final_df[final_df["segment"] == segment]
+    metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df["cluster"].values, true_labels=df["target"].values)
+    metrics_df =  pd.DataFrame({
+        # 'connectivity': [metrics_dict["connectivity"]],
+        "F1": [metrics_dict["F1"]],
+        "SI": [metrics_dict["SI"]],
+        "JI": [metrics_dict["JI"]],
+        "homogeneity": [metrics_dict["homogeneity"]],
+        "RI": [metrics_dict["RI"]],
+        "ARI": [metrics_dict["ARI"]],
+        "MI": [metrics_dict["MI"]],
+        "NMI": [metrics_dict["NMI"]],
+        "AMI": [metrics_dict["AMI"]],
+        "CS": [metrics_dict["CS"]],
+        "V": [metrics_dict["V"]],
+        "FMI": [metrics_dict["FMI"]],
+        "S": [metrics_dict["S"]],
+        "DB": [metrics_dict["DB"]],
+        "segment": [segment],
+        "stream": "-"
+    })
+    return metrics_df
         

@@ -37,7 +37,7 @@ def s1(size: int):
 
     metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values)
     metrics_df =  pd.DataFrame({
-            'connectivity': [metrics_dict['connectivity']],
+            # 'connectivity': [metrics_dict['connectivity']],
             'SI': [metrics_dict['SI']],
             'S': [metrics_dict['S']],
             'DB': [metrics_dict['DB']]

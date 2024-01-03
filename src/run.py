@@ -1,7 +1,7 @@
 from EdgeCluster import EdgeCluster
 import initial_clustering as ic
 import preprocessing_windows as pw
-from utils import (draw_graph, 
+from utils import (draw_graph, evaluation_metrics, 
                    get_label, 
                    summary, 
                    write_to_csv, 
@@ -57,43 +57,28 @@ def experiment_s1_data(num_segments, batch_size):
                      data=df,
                      path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
     
+    # write to csv - final clustering
     final_df = preprocessing_final_dataset(initial_clustering['clustering'])
     write_to_csv(filename='final_clustering', 
                     data=final_df,
                     path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
     
+    # write to csv - final monitoring
     monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
     write_to_csv(filename='final_minitoring', 
                     data=monitoring_df, 
                     path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
     
-    segments = final_df['segment'].unique()
+    # calculate evaluation metrics
     metrics = []
-    for segment in segments:
-        df = final_df[final_df['segment'] == segment]
-        metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df['cluster'].values, true_labels=df['target'].values)
-        metrics_df =  pd.DataFrame({
-            'connectivity': [metrics_dict["connectivity"]],
-            'F1': [metrics_dict["F1"]],
-            'SI': [metrics_dict["SI"]],
-            'homogeneity': [metrics_dict["homogeneity"]],
-            "RI": [metrics_dict["RI"]],
-            "ARI": [metrics_dict["ARI"]],
-            "MI": [metrics_dict["MI"]],
-            "NMI": [metrics_dict["NMI"]],
-            "AMI": [metrics_dict["AMI"]],
-            "CS": [metrics_dict["CS"]],
-            "V": [metrics_dict["V"]],
-            "FMI": [metrics_dict["FMI"]],
-            "S": [metrics_dict["S"]],
-            "DB": [metrics_dict["DB"]],
-            'segment': [segment],
-            'stream': '-'
-        })
-
+    metrics_without = []
+    for segment in final_df['segment'].unique():
+        metrics_df = evaluation_metrics(final_df, segment)
         metrics.append(metrics_df)
+        metrics_df = evaluation_metrics(final_df, segment, is_included=True)
+        metrics_without.append(metrics_df)
     
-    return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False)
+    return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
 def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10, batch_size=100, plots=True):
     """
@@ -207,22 +192,33 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
     return list_of_clustering_solutions
 
 if __name__ == '__main__':
-    size_windows = [3, 5, 10, 12, 24]   # number of samples
+    size_windows = [3, 4, 6, 8, 12, 24]   # number of samples in each window
     start_time = time.time()
 
     # Experiment with S1 data
     final_data_metrics = []
+    final_data_metrics_without = []
     for size in size_windows:
         print(f"Starting size {size}")
-        _, metrics = experiment_s1_data(num_segments=4, batch_size=size)
+        _, metrics, metrics_without = experiment_s1_data(num_segments=4, batch_size=size)
         metrics['size'] = metrics.shape[0] * [size]
+        metrics_without['size'] = metrics_without.shape[0] * [size]
         final_data_metrics.append(metrics)
+        final_data_metrics_without.append(metrics_without)
         write_to_csv(filename='metrics', 
                 data=metrics, 
+                path = ['..', 'results', 's1', 'tabular', f'{size}'])
+        write_to_csv(filename='metrics_without_deviation_and_matching', 
+                data=metrics_without, 
                 path = ['..', 'results', 's1', 'tabular', f'{size}'])
     
     final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
     write_to_csv(filename='final_evalution_metrics', 
+                data=final_data_metrics_df, 
+                path = ['..', 'results', 's1', 'tabular'])
+    
+    final_data_metrics_df = pd.concat(final_data_metrics_without, ignore_index=True, sort=False)
+    write_to_csv(filename='final_evalution_metrics_without_deviation_and_matching', 
                 data=final_data_metrics_df, 
                 path = ['..', 'results', 's1', 'tabular'])
     print("--- %s seconds ---" % (time.time() - start_time))
