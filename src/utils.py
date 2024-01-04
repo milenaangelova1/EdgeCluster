@@ -375,7 +375,7 @@ def summary(final_clustering):
     df = pd.concat([closed_cluster_df, cluster_df, window_df, changes_df], axis=1)
     return df
 
-def move_data(initial_clustering, clustering, list_of_windows):
+def move_data(initial_clustering, clustering, list_of_windows, window_index):
     """
     :param: initial_clustering - this is the original clustering at the begining
     :param: clustering - this is the current clustering for a specific window
@@ -391,68 +391,82 @@ def move_data(initial_clustering, clustering, list_of_windows):
     if merges:
         for cluster_label in merges:
             initial_clustering['clustering'][0]['data']['cluster'].replace(cluster_label, cluster, inplace=True)
-        window_data, segment, stream, target = find_window(list_of_windows, window)
+        window_data, segment, stream, target = find_window(list_of_windows, window_index)
         add_cluster_label(window_data, cluster)
         if not window_data is None:
-            add_window_data(initial_clustering, window_data, segment, stream, target, is_union=False)
+            add_window_data(initial_clustering, window_data, segment, stream, target)
     elif windows:
-        window_data, segment, stream, target = find_window(list_of_windows, window)
+        window_data, segment, stream, target = find_window(list_of_windows, window_index)
         cluster_label = window['cluster']
         add_cluster_label(window_data, cluster_label)
         add_window_data(initial_clustering, window_data, segment, stream, target)
     elif deviated:
-        window_data, segment, stream, target = find_window(list_of_windows, window)
+        window_data, segment, stream, target = find_window(list_of_windows, window_index)
         window_data['cluster'] = -1
         add_window_data(initial_clustering, window_data, segment, stream, target, is_included=False)
     elif matched:
-        window_data, segment, stream, target = find_window(list_of_windows, window)
+        window_data, segment, stream, target = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
         add_window_data(initial_clustering, window_data, segment, stream, target, is_included=False)
     else:
-        window_data, segment, stream, target = find_window(list_of_windows, window)
+        window_data, segment, stream, target = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
         # Union between them
-        add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True, is_union=False)
+        add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True)
 
 def add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True, is_union=False):
     window_data['is_included'] = window_data.shape[0] * [is_included]
     df = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
-    if is_union:
-        df['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
-        df['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
-        df['target'] = list(initial_clustering['clustering'][0]['targets']) + target
-        df['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
-        df = df.drop_duplicates(df.columns[:-4]).reset_index(drop=True)
-        initial_clustering['clustering'][0]['data'] = df[df.columns[:-3]]
-        initial_clustering['clustering'][0]['segment'] = df['segment']
-        initial_clustering['clustering'][0]['stream'] = df['stream']
-        initial_clustering['clustering'][0]['targets'] = df['target']
-        initial_clustering['clustering'][0]['is_included'] = df['is_included']
-    else:
-        initial_clustering['clustering'][0]['data'] = df
-        initial_clustering['clustering'][0]['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
-        initial_clustering['clustering'][0]['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
-        initial_clustering['clustering'][0]['targets'] = list(initial_clustering['clustering'][0]['targets']) + target
-        initial_clustering['clustering'][0]['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
+    # if is_union:
+    #     df['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
+    #     df['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
+    #     df['target'] = list(initial_clustering['clustering'][0]['targets']) + target
+    #     df['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
+    #     df = df.drop_duplicates(df.columns[:-4]).reset_index(drop=True)
+    #     initial_clustering['clustering'][0]['data'] = df[df.columns[:-3]]
+    #     initial_clustering['clustering'][0]['segment'] = df['segment']
+    #     initial_clustering['clustering'][0]['stream'] = df['stream']
+    #     initial_clustering['clustering'][0]['targets'] = df['target']
+    #     initial_clustering['clustering'][0]['is_included'] = df['is_included']
+    # else:
+    initial_clustering['clustering'][0]['data'] = df
+    initial_clustering['clustering'][0]['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
+    initial_clustering['clustering'][0]['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
+    initial_clustering['clustering'][0]['targets'] = list(initial_clustering['clustering'][0]['targets']) + target
+    initial_clustering['clustering'][0]['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
             
-def find_window(list_of_windows, window):
-    window_data = None
-    for w in list_of_windows['clustering']:
-        if window['stream'] == w['stream'] and window['segment'] == w['segment']:
-            window_data = w['data']
-            segment = w['segment']
-            stream = w['stream']
-            target = w['target']
-            break
-    return window_data, segment, stream, target
+def find_window(list_of_windows, window_index):
+    window_data = list_of_windows['clustering'][window_index]
+    return window_data['data'], window_data['segment'], window_data['stream'], window_data['target']
 
 def add_cluster_label(clustering, cluster):
     clustering["cluster"] = clustering.shape[0] * [cluster]
 
 def evaluation_metrics(final_df, segment, is_included=False):
+    df = final_df.copy()
     if is_included:
-        df = final_df[final_df["is_included"] == True]
-    df = final_df[final_df["segment"] == segment]
+        df = df[df["is_included"] == True]
+
+    if df.empty:
+        return pd.DataFrame({
+        # 'connectivity': [metrics_dict["connectivity"]],
+        "F1": [np.nan],
+        "SI": [np.nan],
+        "JI": [np.nan],
+        "homogeneity": [np.nan],
+        "RI": [np.nan],
+        "ARI": [np.nan],
+        "MI": [np.nan],
+        "NMI": [np.nan],
+        "AMI": [np.nan],
+        "CS": [np.nan],
+        "V": [np.nan],
+        "FMI": [np.nan],
+        "S": [np.nan],
+        "DB": [np.nan],
+        "segment": [segment],
+        "stream": "-"
+    })
     metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df["cluster"].values, true_labels=df["target"].values)
     metrics_df =  pd.DataFrame({
         # 'connectivity': [metrics_dict["connectivity"]],
@@ -474,4 +488,7 @@ def evaluation_metrics(final_df, segment, is_included=False):
         "stream": "-"
     })
     return metrics_df
+
+def update_segments_dict(segments:dict, window_segement: int, initial_clustering: dict):
+    segments[window_segement].append(initial_clustering)
         

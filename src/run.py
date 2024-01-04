@@ -3,7 +3,7 @@ import initial_clustering as ic
 import preprocessing_windows as pw
 from utils import (draw_graph, evaluation_metrics, 
                    get_label, 
-                   summary, 
+                   summary, update_segments_dict, 
                    write_to_csv, 
                    move_data, 
                    preprocessing_final_dataset)
@@ -32,10 +32,17 @@ def experiment_s1_data(num_segments, batch_size):
     # the latest one is the final one
     list_of_clustering_solutions = []
     dfs = []
+    segments = {
+        1: [],
+        2: [],
+        3: [],
+        4: []
+    }
     for index, window in enumerate(list_of_windows['clustering_metrics']):
         print(f"Start processing a window {index}")
         clustering = EdgeCluster().fit(window, initial_clustering['clustering_metrics'])
-        move_data(initial_clustering, clustering, list_of_windows)
+        move_data(initial_clustering, clustering, list_of_windows, index)
+        update_segments_dict(segments, window['segment'], initial_clustering)
         print(f"The EdgeCluster completed for a window {index}")
         print(f"Start plotting a graph for a window {index}")
         draw_graph(df_metrics = clustering,
@@ -72,11 +79,20 @@ def experiment_s1_data(num_segments, batch_size):
     # calculate evaluation metrics
     metrics = []
     metrics_without = []
-    for segment in final_df['segment'].unique():
-        metrics_df = evaluation_metrics(final_df, segment)
+
+    for segment in segments.keys():
+        if segment == 0:
+            data = segments[segment][-1]['clustering'][0]['data'][segments[segment][-1]['clustering'][0]['data']["segment"]==0]
+        else:
+            length = len(segments[segment]) - 1 
+            data = segments[segment][length]['clustering'][0]['data'][segments[segment][length]['clustering'][0]['data']['segment']<=segment]
+        write_to_csv(filename=f'final_clustering_data_segment_{segment}', 
+                    data=data,
+                    path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
+        metrics_df = evaluation_metrics(data, segment)
         metrics.append(metrics_df)
-        metrics_df = evaluation_metrics(final_df, segment, is_included=True)
-        metrics_without.append(metrics_df)
+
+        metrics_without.append(evaluation_metrics(data, segment, is_included=True))
     
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
