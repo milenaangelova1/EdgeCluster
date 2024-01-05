@@ -35,12 +35,14 @@ def s1(size: int):
     df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
     df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', 'tabular', f'{size}', f'initial_clustering_data.csv'))
 
-    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values)
+    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values)
     metrics_df =  pd.DataFrame({
             # 'connectivity': [metrics_dict['connectivity']],
             'SI': [metrics_dict['SI']],
             'S': [metrics_dict['S']],
-            'DB': [metrics_dict['DB']]
+            'DB': [metrics_dict['DB']],
+            'F1': [metrics_dict['F1']],
+            'JI': [metrics_dict['JI']]
         })
     write_to_csv(filename='initial_clustering_metrics', 
                 data=metrics_df, 

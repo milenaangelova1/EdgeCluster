@@ -10,8 +10,8 @@ from sklearn.metrics import (pairwise_distances, homogeneity_score, silhouette_s
     adjusted_mutual_info_score,
     rand_score, adjusted_rand_score,
     davies_bouldin_score,
-    calinski_harabasz_score,
-    jaccard_score)
+    calinski_harabasz_score
+    )
 
 def evalutation_report(data, pred_labels, true_labels=[]):
     F1 = None
@@ -364,4 +364,4 @@ def calculate_connectivity(X_train, y_train, columns, n_neighbors, metric=None, 
     return dataframe
 
 def calculate_jaccard_score(y_true, y_pred):
-    return jaccard_score(y_true, y_pred, average='weighted')
+    return (len(y_pred & y_true)) / (len(y_true) + len(y_pred) - len(y_true & y_pred))
