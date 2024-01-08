@@ -491,4 +491,28 @@ def evaluation_metrics(final_df, segment, is_included=False):
 
 def update_segments_dict(segments:dict, window_segement: int, initial_clustering: dict):
     segments[window_segement].append(initial_clustering)
-        
+
+def metrics_by_segments(segments, batch_size, type='continuous'):
+    metrics = []
+    metrics_without = []
+    data = pd.DataFrame()
+    for segment in segments.keys():
+        if segment == 0:
+            data = segments[segment][-1]['clustering'][0]['data'][segments[segment][-1]['clustering'][0]['data']['segment']==0]
+        else:
+            length = len(segments[segment]) - 1 
+            if type == 'original_previous' or type == 'continuous_previous':
+                data = segments[segment][length]['clustering'][0]['data'][(segments[segment][length]['clustering'][0]['data']['segment']==segment-1) | (segments[segment][length]['clustering'][0]['data']['segment']==segment)]
+                seg = f'{segment-1}-{segment}'
+            elif type == 'original' or type == 'continuous':
+                data = segments[segment][length]['clustering'][0]['data'][segments[segment][length]['clustering'][0]['data']['segment']==segment]
+                seg = f'{segment}'
+        write_to_csv(filename=f'final_clustering_data_segment_{seg}', 
+                    data=data,
+                    path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
+        metrics_df = evaluation_metrics(data, segment)
+        metrics.append(metrics_df)
+
+        metrics_without.append(evaluation_metrics(data, segment, is_included=True))
+    return metrics, metrics_without
+            

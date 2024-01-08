@@ -3,7 +3,7 @@ from scipy.stats import zscore
 
 columns = ['Pt', 'avg_rate', 'avg_rate', 'Temp (C)']
 files = ['Electricity_WHE.csv', 'Water_WHW.csv', 'NaturalGas_WHG.csv', 'Climate_HourlyWeather.csv']
-filepaths = [f'original/{x}' for x in files]
+filepaths = [f'/Users/milenaangelova/git-repo/EdgeCluster/data/ampds/original/{x}' for x in files]
 
 hours = [1,2,3,4,6,8]
 

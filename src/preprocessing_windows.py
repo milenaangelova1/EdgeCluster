@@ -5,7 +5,7 @@ import os
 
 from src.utils import calculate_hyper_rectangle_features
 
-def s1(num_segments: int, batch_size: int):
+def s1(num_segments: int, batch_size: int, type: str):
     """
     Preprocessing the S1 data.
 
@@ -18,7 +18,7 @@ def s1(num_segments: int, batch_size: int):
     
     # read the data
     for segment in range(1, num_segments + 1):
-        df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 's1', 'original', f'{segment}.csv'))
+        df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 's1', f'{type}', f'{segment}.csv'))
         df = df[df.columns[0:-1]]
 
         if batch_size:

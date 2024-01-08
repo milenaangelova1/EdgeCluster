@@ -2,7 +2,7 @@ from EdgeCluster import EdgeCluster
 import initial_clustering as ic
 import preprocessing_windows as pw
 from utils import (draw_graph, evaluation_metrics, 
-                   get_label, 
+                   get_label, metrics_by_segments, 
                    summary, update_segments_dict, 
                    write_to_csv, 
                    move_data, 
@@ -11,12 +11,12 @@ from metrics import evalutation_report
 import time
 import pandas as pd
 
-def experiment_s1_data(num_segments, batch_size):
+def experiment_s1_data(num_segments, batch_size, type):
     """
     Experiment: runs Edge Cluster over S1 data.
     """
-    list_of_windows = pw.s1(num_segments=num_segments, batch_size=batch_size)
-    initial_clustering = ic.s1(size=batch_size)
+    list_of_windows = pw.s1(num_segments=num_segments, batch_size=batch_size, type=type.split("_")[0])
+    initial_clustering = ic.s1(size=batch_size, type=type.split("_")[0])
 
     draw_graph(df_metrics = initial_clustering['clustering_metrics'],
             window_metrics={},
@@ -25,7 +25,7 @@ def experiment_s1_data(num_segments, batch_size):
             xaxis_label='Feature 1', 
             yaxis_label='Feature 2', 
             batch_size=batch_size,
-            path=['..', 'results', 's1', 'plots'],
+            path=['..', 'results', 's1', f'{type}', 'plots'],
             initial_graph=True)
     
     # keep all the clustering solutions
@@ -52,7 +52,7 @@ def experiment_s1_data(num_segments, batch_size):
             xaxis_label='Feature 1', 
             yaxis_label='Feature 2', 
             batch_size=batch_size,
-            path = ['..', 'results', 's1', 'plots'])
+            path = ['..', 'results', 's1', f'{type}', 'plots'])
         print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
         print(f"Summary for a window {index}")
@@ -62,37 +62,22 @@ def experiment_s1_data(num_segments, batch_size):
         dfs.append(df)
         write_to_csv(filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
                      data=df,
-                     path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
+                     path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
     
     # write to csv - final clustering
     final_df = preprocessing_final_dataset(initial_clustering['clustering'])
     write_to_csv(filename='final_clustering', 
                     data=final_df,
-                    path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
+                    path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
     
     # write to csv - final monitoring
     monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
     write_to_csv(filename='final_minitoring', 
                     data=monitoring_df, 
-                    path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
+                    path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
     
     # calculate evaluation metrics
-    metrics = []
-    metrics_without = []
-
-    for segment in segments.keys():
-        if segment == 0:
-            data = segments[segment][-1]['clustering'][0]['data'][segments[segment][-1]['clustering'][0]['data']["segment"]==0]
-        else:
-            length = len(segments[segment]) - 1 
-            data = segments[segment][length]['clustering'][0]['data'][segments[segment][length]['clustering'][0]['data']['segment']<=segment]
-        write_to_csv(filename=f'final_clustering_data_segment_{segment}', 
-                    data=data,
-                    path = ['..', 'results', 's1', 'tabular', f'{batch_size}'])
-        metrics_df = evaluation_metrics(data, segment)
-        metrics.append(metrics_df)
-
-        metrics_without.append(evaluation_metrics(data, segment, is_included=True))
+    metrics, metrics_without = metrics_by_segments(segments, batch_size, type=type)
     
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
@@ -207,7 +192,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
                         path = ['..', 'results', 'ampds', 'tabular', f'{batch_size}'])
     return list_of_clustering_solutions
 
-if __name__ == '__main__':
+def experiment1(type='continous'):
     size_windows = [3, 4, 6, 8, 12, 24]   # number of samples in each window
     start_time = time.time()
 
@@ -216,29 +201,47 @@ if __name__ == '__main__':
     final_data_metrics_without = []
     for size in size_windows:
         print(f"Starting size {size}")
-        _, metrics, metrics_without = experiment_s1_data(num_segments=4, batch_size=size)
+        _, metrics, metrics_without = experiment_s1_data(num_segments=4, batch_size=size, type=type)
         metrics['size'] = metrics.shape[0] * [size]
         metrics_without['size'] = metrics_without.shape[0] * [size]
         final_data_metrics.append(metrics)
         final_data_metrics_without.append(metrics_without)
         write_to_csv(filename='metrics', 
                 data=metrics, 
-                path = ['..', 'results', 's1', 'tabular', f'{size}'])
+                path = ['..', 'results', 's1', f'{type}', 'tabular', f'{size}'])
         write_to_csv(filename='metrics_without_deviation_and_matching', 
                 data=metrics_without, 
-                path = ['..', 'results', 's1', 'tabular', f'{size}'])
+                path = ['..', 'results', 's1', f'{type}', 'tabular', f'{size}'])
     
     final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
     write_to_csv(filename='final_evalution_metrics', 
                 data=final_data_metrics_df, 
-                path = ['..', 'results', 's1', 'tabular'])
+                path = ['..', 'results', 's1', f'{type}', 'tabular'])
     
     final_data_metrics_df = pd.concat(final_data_metrics_without, ignore_index=True, sort=False)
     write_to_csv(filename='final_evalution_metrics_without_deviation_and_matching', 
                 data=final_data_metrics_df, 
-                path = ['..', 'results', 's1', 'tabular'])
+                path = ['..', 'results', 's1', f'{type}', 'tabular'])
     print("--- %s seconds ---" % (time.time() - start_time))
-    
+
+def experiment2():
+    # Experiment with AMPDS2 dataset
+    start_time = time.time()
+    hours = [1, 2, 3, 4, 6, 8]
+    types = ['gas', 'water', 'elec']
+
+    # generate combinations
+    # experiment_ampds2_data(hour, type, num_segments=10, batch_size=None)
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+
+if __name__ == '__main__':
+    # experiment1(type='original')
+    # experiment1(type='original_previous')
+    # experiment1(type='continuous')
+    experiment1(type='continuous_previous')
+    # experiment2()
+
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data
     # final_data_metrics = []
@@ -281,15 +284,4 @@ if __name__ == '__main__':
     #             data=final_data_metrics_df, 
     #             path = ['..', 'results', 'synthetic', '8-dim', 'tabular'])
         
-    # print("--- %s seconds ---" % (time.time() - start_time))
-    
-    # # Experiment with AMPDS2 dataset
-    # start_time = time.time()
-    # hours = [1, 2, 3, 4, 6, 8]
-    # types = ['all', 'gas', 'water', 'weather', 'elec']
-
-    # # generate combinations
-    # combinations = product(hours, types)
-    # for hour, type in combinations:
-    #     experiment_ampds2_data(hour, type, num_segments=10, batch_size=None)
     # print("--- %s seconds ---" % (time.time() - start_time))

@@ -12,7 +12,7 @@ from utils import write_to_csv
 from src.utils import calculate_hyper_rectangle_features
 
 
-def s1(size: int):
+def s1(size: int, type):
     """
     Preprocessing the S1 data.
 
@@ -22,7 +22,7 @@ def s1(size: int):
     """
     clustering = []
     # read the data 
-    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 's1', 'original', '0.csv'))
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 's1', f'{type}', '0.csv'))
     df = df[df.columns[0:-1]]
 
     clustering.append({
@@ -32,8 +32,8 @@ def s1(size: int):
         'targets': list(df['cluster'].values),
         'is_included': df.shape[0] * [True]
     })
-    df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
-    df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', 'tabular', f'{size}', f'initial_clustering_data.csv'))
+    df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', f'{type}', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
+    df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', f'{type}', 'tabular', f'{size}', f'initial_clustering_data.csv'))
 
     metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values)
     metrics_df =  pd.DataFrame({
@@ -46,7 +46,7 @@ def s1(size: int):
         })
     write_to_csv(filename='initial_clustering_metrics', 
                 data=metrics_df, 
-                path = ['..', 'results', 's1', 'tabular', f'{size}'])
+                path = ['..', 'results', 's1', f'{type}', 'tabular', f'{size}'])
 
     list_clusters_with_metrics = []
     for cluster in clustering:
