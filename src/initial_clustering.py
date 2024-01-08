@@ -191,56 +191,11 @@ def initial_kmedoids_clustering(data, mini, maxi, iterations, distances=None, ce
             connectivity_clusters,
             ], pd.concat(dfs)
 
-def _ampds():
-    files = ['elec', 'water', 'gas', 'weather', 'all']
-    distance_functions = [pairwise_euclidean, fastdtw_wrapper]
-    mini = 2
-    maxi = 11
-    iterations = 250
-    hours = [1,2,3,4,6,8]
-    # hours = [8]
-
-    for hour in hours:
-        for k in range(1):
-        #for k in range(12):
-            for i in range(len(distance_functions)):
-                for file in files:
-                    print("Starting", file)
-                    data = pd.read_csv(f'data/ampds/segmented_data/{hour}H_{file}_segment_{k}.csv', index_col=0, parse_dates=True)
-                    #data = data.apply(zscore, axis=1, result_type='expand')
-                    distances = pd.DataFrame(distance_functions[i](data.to_numpy(copy=True)))
-
-                    returns, initial_clustering = initial_kmedoids_clustering(data.to_numpy(copy=True), mini, maxi, iterations, distances.to_numpy(copy=True))
-
-                    index = [x for x in range(mini, maxi)]
-                    cols = ["sil", "sil_clusters", "ic", "ic_clusters", "conn", "conn_clusters"]
-                    df = pd.DataFrame(columns = cols)
-                    for j in range(len(returns)):
-                        df[cols[j]] = returns[j]
-                    df.index = index
-                    initial_clustering.to_csv(f'data/ampds/initial_clusterings/{hour}H_initial_clustering_{file}_{distance_functions[i].__name__}_seg_{k}.csv')
-                    df.to_csv(f'data/ampds/initial_clusterings/{hour}H_initial_{file}_{distance_functions[i].__name__}_seg_{k}.csv')
-
-                    # print("Starting", file)
-                    # data = pd.read_csv(f'data/AMPds2/z_{file}_segment_{k}.csv', index_col=0, parse_dates=True)
-                    # #data = data.apply(zscore, axis=1, result_type='expand')
-                    # distances = pd.DataFrame(distance_functions[i](data.to_numpy(copy=True)))
-
-                    # returns = initial_kmedoids_clustering(data.to_numpy(copy=True), mini, maxi, iterations, distances.to_numpy(copy=True))
-
-                    # index = [x for x in range(mini, maxi)]
-                    # cols = ["sil", "sil_clusters", "ic", "ic_clusters", "conn", "conn_clusters"]
-                    # df = pd.DataFrame(columns = cols)
-                    # for j in range(len(returns)):
-                    # 	df[cols[j]] = returns[j]
-                    # df.index = index
-                    # df.to_csv(f'data/AMPds2/initial_clusterings/z_initial_{file}_{distance_functions[i].__name__}_seg_{k}.csv')
-
 def fastdtw_wrapper(data):
     return np.array([[fastdtw(data[x], data[y])[0] for x in range(len(data))]for y in range(len(data))])
 
 
-def ampds(hour: int, type: str):
+def ampds(hour: int, type: str, size: int):
     clustering = []
     # read the data 
     df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'initial_clusterings', f'{hour}H_initial_clustering_{type}_pairwise_euclidean_seg_0.csv'))
@@ -248,10 +203,23 @@ def ampds(hour: int, type: str):
     
     clustering.append({
         'data': df,
-        'stream': None,
-        'segment': 0,
-        'targets': df['cluster']
+        'stream': [-1] * df.shape[0],
+        'segment': [0] * df.shape[0],
+        'targets': df.shape[0] * [np.nan],
+        'is_included': df.shape[0] * [True]
     })
+
+    df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'ampds', f'{type}', f'{size}', 'tabular', f'initial_clustering_value_counts.csv'))
+    df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'ampds', f'{type}', f'{size}', 'tabular', f'initial_clustering_data.csv'))
+    
+    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values)
+    metrics_df =  pd.DataFrame({
+            'SI': [metrics_dict['SI']],
+            'IC_av': [metrics_dict['IC_av']]
+        })
+    write_to_csv(filename='initial_clustering_metrics', 
+                data=metrics_df, 
+                path = ['..', 'results', 'ampds', f'{type}', f'{size}', 'tabular'])
     
     list_clusters_with_metrics = []
     for cluster in clustering:
@@ -263,9 +231,14 @@ def ampds(hour: int, type: str):
             cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
             cluster_metrics['cluster'] = label
             cluster_metrics['stream'] = cluster['stream']
+            cluster_metrics['segment'] = cluster['segment']
+            cluster_metrics['cluster_value_count'] = c.shape[0]
             list_clusters_with_metrics.append(cluster_metrics)
+
+    clustering[0]['data']['is_included'] = clustering[0]['data'].shape[0] * [True]
 
     return {
         "clustering": clustering,
         "clustering_metrics": list_clusters_with_metrics
     }
+

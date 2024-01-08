@@ -2,6 +2,7 @@
 # it will be added here.
 import pandas as pd
 import os
+import numpy as np
 
 from src.utils import calculate_hyper_rectangle_features
 
@@ -107,12 +108,19 @@ def synthetic(num_dimentions=2, stream_number=0, num_segments=10, batch_size=10)
 
 def ampds(hour: int, type: str, num_segments: int, batch_size: int):
     """
-    
+    Preprocessing the AMPDS2 data.
+
+    :param: hour
+    :param: type
+    :param: num_segments
+    :param: batch_size
+
+    :returns: pre-processed AMPDS2 data
     """
     clustering = []
     
     # read the data 
-    for segment in range(num_segments):
+    for segment in range(1, num_segments + 1):
         df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'segmented_data', f'{hour}H_{type}_segment_{segment}.csv'))
         df = df.drop(['Unnamed: 0'], axis=1)
         
@@ -121,14 +129,16 @@ def ampds(hour: int, type: str, num_segments: int, batch_size: int):
                 new_df = df.iloc[index:index + batch_size, :]
                 clustering.append({
                     'data': new_df,
-                    'stream': None,
-                    'segment': segment
+                    'stream': -1,
+                    'segment': segment,
+                    'target': new_df.shape[0] * [np.nan],
+                    'is_included': [False] * new_df.shape[0]
                 })
         else:
             clustering.append({
                 'data': df,
-                'stream': None,
-                'segment': segment
+                'segment': segment,
+                'target': new_df.shape[0] * [np.nan]
             })
     
     list_clusters_with_metrics = []
@@ -138,6 +148,7 @@ def ampds(hour: int, type: str, num_segments: int, batch_size: int):
         cluster_metrics = calculate_hyper_rectangle_features(df)
         cluster_metrics['stream'] = cluster['stream']
         cluster_metrics['segment'] = cluster['segment']
+        cluster_metrics['cluster_value_count'] = batch_size
         list_clusters_with_metrics.append(cluster_metrics)
 
     # calculate the high, low and mean of each window    

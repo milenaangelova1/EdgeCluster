@@ -442,7 +442,7 @@ def find_window(list_of_windows, window_index):
 def add_cluster_label(clustering, cluster):
     clustering["cluster"] = clustering.shape[0] * [cluster]
 
-def evaluation_metrics(final_df, segment, is_included=False):
+def evaluation_metrics(final_df, segment, is_included=False, true_labels= True):
     df = final_df.copy()
     if is_included:
         df = df[df["is_included"] == True]
@@ -464,10 +464,14 @@ def evaluation_metrics(final_df, segment, is_included=False):
         "FMI": [np.nan],
         "S": [np.nan],
         "DB": [np.nan],
+        "IC_av": [np.nan],
         "segment": [segment],
         "stream": "-"
     })
-    metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df["cluster"].values, true_labels=df["target"].values)
+    if true_labels:
+        metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df["cluster"].values, true_labels=df["target"].values)
+    else:
+        metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df["cluster"].values)
     metrics_df =  pd.DataFrame({
         # 'connectivity': [metrics_dict["connectivity"]],
         "F1": [metrics_dict["F1"]],
@@ -484,6 +488,7 @@ def evaluation_metrics(final_df, segment, is_included=False):
         "FMI": [metrics_dict["FMI"]],
         "S": [metrics_dict["S"]],
         "DB": [metrics_dict["DB"]],
+        "IC_av": [metrics_dict["IC_av"]],
         "segment": [segment],
         "stream": "-"
     })
@@ -492,7 +497,7 @@ def evaluation_metrics(final_df, segment, is_included=False):
 def update_segments_dict(segments:dict, window_segement: int, initial_clustering: dict):
     segments[window_segement].append(initial_clustering)
 
-def metrics_by_segments(segments, batch_size, type='continuous'):
+def metrics_by_segments(segments, batch_size, path, true_labels, type='continuous'):
     metrics = []
     metrics_without = []
     data = pd.DataFrame()
@@ -509,10 +514,10 @@ def metrics_by_segments(segments, batch_size, type='continuous'):
                 seg = f'{segment}'
         write_to_csv(filename=f'final_clustering_data_segment_{seg}', 
                     data=data,
-                    path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
-        metrics_df = evaluation_metrics(data, segment)
+                    path = path)
+        metrics_df = evaluation_metrics(data, segment, true_labels=true_labels)
         metrics.append(metrics_df)
 
-        metrics_without.append(evaluation_metrics(data, segment, is_included=True))
+        metrics_without.append(evaluation_metrics(data, segment, is_included=True, true_labels=true_labels))
     return metrics, metrics_without
             

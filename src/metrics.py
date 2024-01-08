@@ -29,6 +29,7 @@ def evalutation_report(data, pred_labels, true_labels=[]):
     s = None
     DB = None
     JI = None
+    ICav = None
     distances = calculate_distances(data.to_numpy(copy=True))
     # connectivity = calculate_connectivity(data, 
     #                                     pred_labels,
@@ -38,6 +39,7 @@ def evalutation_report(data, pred_labels, true_labels=[]):
         SI = calculate_silhouette(data, pred_labels)
         s = calinski_harabasz_score(data, pred_labels)
         DB = davies_bouldin_score(data, pred_labels)
+        ICav = IC_av(distances, pred_labels)
     if len(true_labels) > 1:
         F1 = f_measure(pred_labels, true_labels)
         _homogeneity_score = homogeneity_score(true_labels, pred_labels)
@@ -65,7 +67,8 @@ def evalutation_report(data, pred_labels, true_labels=[]):
         "FMI": FMI,
         "S": s,
         "DB": DB,
-        "JI": JI
+        "JI": JI,
+        "IC_av": ICav
     }
 
 # F1
@@ -91,16 +94,16 @@ def IC_av(distance_matrix = None, labels = None):
         TypeError: if distance_matrix is not a Pandas.Dataframe.
         ValueError: if distance_matrix or labels is of None value.
     """
-    if distance_matrix is None:
-        raise ValueError("distance_matrix cannot be None value")
-    if not isinstance(distance_matrix, pd.DataFrame):
-        raise TypeError("distance_matrix must be DataFrame")
-    if labels is None:
-        raise ValueError("labels cannot be None value")
+    # if distance_matrix is None:
+    #     raise ValueError("distance_matrix cannot be None value")
+    # if not isinstance(distance_matrix, pd.DataFrame):
+    #     raise TypeError("distance_matrix must be DataFrame")
+    # if labels is None:
+    #     raise ValueError("labels cannot be None value")
 
 
     # MST of the distance matrix
-    mst = minimum_spanning_tree(distance_matrix.values)
+    mst = minimum_spanning_tree(distance_matrix)
 
     MED_matrix = pd.DataFrame(fast_IC_av(mst))
     
