@@ -265,9 +265,9 @@ def experiment2():
     # Experiment with AMPDS2 dataset
     start_time = time.time()
     
-    types = ['gas', 'water', 'elec']
-    hours = [6, 8, 4]
-    size_windows = [3, 5, 7, 12, 24]
+    types = ['gas', 'water', 'elec', 'weather']
+    hours = [6, 8, 4, 4]
+    size_windows = [3, 5, 7] # daily profiles
 
     final_data_metrics = []
     final_data_metrics_without = []

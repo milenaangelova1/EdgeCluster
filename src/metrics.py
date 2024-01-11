@@ -37,36 +37,36 @@ def evalutation_report(data, pred_labels, true_labels=[]):
     #                                     5, distance_matrix=distances)['CONN'].sum()
     if len(set(pred_labels)) > 1:
         SI = calculate_silhouette(data, pred_labels)
-        s = calinski_harabasz_score(data, pred_labels)
-        DB = davies_bouldin_score(data, pred_labels)
-        ICav = IC_av(distances, pred_labels)
+        # s = calinski_harabasz_score(data, pred_labels)
+        # DB = davies_bouldin_score(data, pred_labels)
+    ICav = IC_av(distances, pred_labels)
     if len(true_labels) > 1:
         F1 = f_measure(pred_labels, true_labels)
         _homogeneity_score = homogeneity_score(true_labels, pred_labels)
-        RI = rand_score(true_labels, pred_labels)
-        ARI = adjusted_rand_score(true_labels, pred_labels)
-        MI = mutual_info_score(true_labels, pred_labels)
-        NMI = normalized_mutual_info_score(true_labels, pred_labels)
-        AMI = adjusted_mutual_info_score(true_labels, pred_labels)
-        CS = completeness_score(true_labels, pred_labels)
-        V = v_measure_score(true_labels, pred_labels, beta=1.0)
-        FMI = fowlkes_mallows_score(true_labels, pred_labels)
+        # RI = rand_score(true_labels, pred_labels)
+        # ARI = adjusted_rand_score(true_labels, pred_labels)
+        # MI = mutual_info_score(true_labels, pred_labels)
+        # NMI = normalized_mutual_info_score(true_labels, pred_labels)
+        # AMI = adjusted_mutual_info_score(true_labels, pred_labels)
+        # CS = completeness_score(true_labels, pred_labels)
+        # V = v_measure_score(true_labels, pred_labels, beta=1.0)
+        # FMI = fowlkes_mallows_score(true_labels, pred_labels)
         JI = calculate_jaccard_score(true_labels, pred_labels)
     return {
         # "connectivity": connectivity, 
         "F1": F1, 
         "SI": SI, 
         "homogeneity":_homogeneity_score,
-        "RI": RI,
-        "ARI": ARI,
-        "MI": MI,
-        "NMI": NMI,
-        "AMI": AMI,
-        "CS": CS,
-        "V": V,
-        "FMI": FMI,
-        "S": s,
-        "DB": DB,
+        # "RI": RI,
+        # "ARI": ARI,
+        # "MI": MI,
+        # "NMI": NMI,
+        # "AMI": AMI,
+        # "CS": CS,
+        # "V": V,
+        # "FMI": FMI,
+        # "S": s,
+        # "DB": DB,
         "JI": JI,
         "IC_av": ICav
     }
