@@ -198,7 +198,7 @@ def fastdtw_wrapper(data):
 def ampds(hour: int, type: str, size: int):
     clustering = []
     # read the data 
-    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'initial_clusterings', f'{hour}H_initial_clustering_{type}_pairwise_euclidean_seg_0.csv'))
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'initial_clusterings', f'{hour}H_{type}_segment_0.csv'))
     df.drop(['Unnamed: 0'], axis=1, inplace=True)
     
     clustering.append({

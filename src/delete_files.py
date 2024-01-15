@@ -4,7 +4,7 @@ num_dimentions = 2 # 8 or 2
 folder = 'tabular' # plots or tabular
 stream_number = 3 # 12 or 3
 file_extention = 'csv' # png or csv
-type = 'continuous_previous' # continuous or original or continuous_previous or original_previous
+type = 'weather' # continuous or original or continuous_previous or original_previous
 
 for stream_num in range(stream_number):
     for size in [3, 4, 6, 8, 12, 24]:
@@ -12,7 +12,9 @@ for stream_num in range(stream_number):
         # for f in glob.glob(path):
         #     print(f)
         #     os.remove(f)
-        path = os.path.join(os.path.dirname(__file__), '..', 'results', 's1', f'{type}', f'{folder}', f'{size}', f'*.{file_extention}')
+        # path = os.path.join(os.path.dirname(__file__), '..', 'results', 's1', f'{type}', f'{folder}', f'{size}', f'*.{file_extention}')
+        
+        path = os.path.join(os.path.dirname(__file__), '..', 'results', 'ampds', f'{type}', f'{size}', f'{folder}', f'*.{file_extention}')
         for f in glob.glob(path):
             print(f)
             os.remove(f)

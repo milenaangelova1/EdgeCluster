@@ -266,7 +266,9 @@ def experiment2():
     start_time = time.time()
     
     types = ['gas', 'water', 'elec', 'weather']
+    types = ['weather']
     hours = [6, 8, 4, 4]
+    hours = [4]
     size_windows = [3, 5, 7] # daily profiles
 
     final_data_metrics = []
