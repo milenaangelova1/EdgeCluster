@@ -175,8 +175,9 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
     """
     Experiment: runs Edge Cluster over synthetic data.
     """
-    list_of_windows = pw.ampds(hour, type, num_segments, batch_size)
     initial_clustering = ic.ampds(hour, type, size=batch_size)
+    list_of_windows = pw.ampds(hour, type, num_segments, batch_size)
+    
 
     list_of_clustering_solutions = []
     dfs = []
@@ -266,9 +267,9 @@ def experiment2():
     start_time = time.time()
     
     types = ['gas', 'water', 'elec', 'weather']
-    types = ['weather']
+    # types = ['elec']
     hours = [6, 8, 4, 4]
-    hours = [4]
+    # hours = [4]
     size_windows = [3, 5, 7] # daily profiles
 
     final_data_metrics = []

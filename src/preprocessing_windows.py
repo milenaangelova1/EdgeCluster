@@ -122,8 +122,8 @@ def ampds(hour: int, type: str, num_segments: int, batch_size: int):
     # read the data 
     for segment in range(1, num_segments + 1):
         df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'ampds', 'segmented_data', f'{hour}H_{type}_segment_{segment}.csv'))
-        df = df.drop(['Unnamed: 0'], axis=1)
-        
+        df.drop(['Unnamed: 0'], axis=1, inplace=True)
+
         if batch_size:
             for index in range(0, df.shape[0], batch_size):
                 new_df = df.iloc[index:index + batch_size, :]

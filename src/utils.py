@@ -505,8 +505,9 @@ def metrics_by_segments(segments, batch_size, path, true_labels, type='continuou
     for segment in segments.keys():
         if segment == 0:
             data = segments[segment][-1]['clustering'][0]['data'][segments[segment][-1]['clustering'][0]['data']['segment']==0]
+            seg = f'{segment}'
         else:
-            length = len(segments[segment]) - 1 
+            length = len(segments[segment]) - 1
             if type == 'original_previous' or type == 'continuous_previous':
                 data = segments[segment][length]['clustering'][0]['data'][(segments[segment][length]['clustering'][0]['data']['segment']==segment-1) | (segments[segment][length]['clustering'][0]['data']['segment']==segment)]
                 seg = f'{segment-1}-{segment}'
