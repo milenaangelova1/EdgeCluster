@@ -56,8 +56,8 @@ def kmedoids(D, k, medoids=None, tmax=100):
     
     return C, medoids
 
-def calculate_distances(data):
-    return pairwise_distances(data,data)
+def calculate_distances(data, metric):
+    return pairwise_distances(data,data, metric)
 
 def pairwise_hamming(data):
     return pairwise_distances(data,data, metric='hamming')

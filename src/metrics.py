@@ -13,7 +13,7 @@ from sklearn.metrics import (pairwise_distances, homogeneity_score, silhouette_s
     calinski_harabasz_score
     )
 
-def evalutation_report(data, pred_labels, true_labels=[]):
+def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean'):
     F1 = None
     _homogeneity_score = None
     SI = None
@@ -30,13 +30,13 @@ def evalutation_report(data, pred_labels, true_labels=[]):
     DB = None
     JI = None
     ICav = None
-    distances = calculate_distances(data.to_numpy(copy=True))
+    distances = calculate_distances(data.to_numpy(copy=True), metric)
     # connectivity = calculate_connectivity(data, 
     #                                     pred_labels,
     #                                     [x for x in range(data.shape[1])],
     #                                     5, distance_matrix=distances)['CONN'].sum()
     if len(set(pred_labels)) > 1:
-        SI = calculate_silhouette(data, pred_labels)
+        SI = calculate_silhouette(distances, pred_labels)
         # s = calinski_harabasz_score(data, pred_labels)
         # DB = davies_bouldin_score(data, pred_labels)
     ICav = IC_av(distances, pred_labels)
@@ -77,8 +77,7 @@ def f_measure(pred, true):
     return value
 
 # SI
-def calculate_silhouette(data, clusters):
-    distances = calculate_distances(data.to_numpy(copy=True))
+def calculate_silhouette(distances, clusters):
     return silhouette_score(distances, clusters, metric='precomputed')
 
 # IC_av

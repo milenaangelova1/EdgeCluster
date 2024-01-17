@@ -171,7 +171,7 @@ def experiment_synthetic_data(num_dimentions=2, stream_number=0, num_segments=10
     
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False)
 
-def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
+def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metric: str):
     """
     Experiment: runs Edge Cluster over synthetic data.
     """
@@ -226,7 +226,8 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int):
     metrics, metrics_without = metrics_by_segments(segments, batch_size, 
                                                    type='original', 
                                                    path=['..', 'results', 'ampds', f'{type}', f'{batch_size}', 'tabular', ], 
-                                                   true_labels=False)
+                                                   true_labels=False,
+                                                   metric=metric)
     
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
@@ -271,12 +272,13 @@ def experiment2():
     hours = [6, 8, 4, 4]
     # hours = [4]
     size_windows = [3, 5, 7] # daily profiles
+    metrics = ['euclidean', 'euclidean', 'euclidean', 'canberra']
 
     final_data_metrics = []
     final_data_metrics_without = []
-    for hour, type in zip(hours, types):
+    for hour, type, metric in zip(hours, types, metrics):
         for size in size_windows:
-            _, metrics, metrics_without = experiment_ampds2_data(hour, type, num_segments=11, batch_size=size)
+            _, metrics, metrics_without = experiment_ampds2_data(hour, type, num_segments=11, batch_size=size, metric=metric)
             metrics['size'] = metrics.shape[0] * [size]
             metrics_without['size'] = metrics_without.shape[0] * [size]
             final_data_metrics.append(metrics)

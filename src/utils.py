@@ -442,7 +442,7 @@ def find_window(list_of_windows, window_index):
 def add_cluster_label(clustering, cluster):
     clustering["cluster"] = clustering.shape[0] * [cluster]
 
-def evaluation_metrics(final_df, segment, is_included=False, true_labels= True):
+def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, metric='euclidean'):
     df = final_df.copy()
     if is_included:
         df = df[df["is_included"] == True]
@@ -469,9 +469,9 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True):
         "stream": "-"
     })
     if true_labels:
-        metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df["cluster"].values, true_labels=df["target"].values)
+        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values)
     else:
-        metrics_dict = evalutation_report(data=df[df.columns[:-4]], pred_labels=df["cluster"].values)
+        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, metric=metric)
     metrics_df =  pd.DataFrame({
         # 'connectivity': [metrics_dict["connectivity"]],
         "F1": [metrics_dict["F1"]],
@@ -498,7 +498,7 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True):
 def update_segments_dict(segments:dict, window_segement: int, initial_clustering: dict):
     segments[window_segement].append(initial_clustering)
 
-def metrics_by_segments(segments, batch_size, path, true_labels, type='continuous'):
+def metrics_by_segments(segments, batch_size, path, true_labels, type='continuous', metric='euclidean'):
     metrics = []
     metrics_without = []
     data = pd.DataFrame()
@@ -517,9 +517,9 @@ def metrics_by_segments(segments, batch_size, path, true_labels, type='continuou
         write_to_csv(filename=f'final_clustering_data_segment_{seg}', 
                     data=data,
                     path = path)
-        metrics_df = evaluation_metrics(data, segment, true_labels=true_labels)
+        metrics_df = evaluation_metrics(data, segment, true_labels=true_labels, metric=metric)
         metrics.append(metrics_df)
 
-        metrics_without.append(evaluation_metrics(data, segment, is_included=True, true_labels=true_labels))
+        metrics_without.append(evaluation_metrics(data, segment, is_included=True, true_labels=true_labels, metric=metric))
     return metrics, metrics_without
             
