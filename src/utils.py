@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
 import math
-import matplotlib.colors as mcolors
 from src.colors import COLORS
 
 
