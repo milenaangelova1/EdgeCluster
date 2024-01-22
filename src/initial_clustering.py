@@ -23,6 +23,7 @@ def s1(size: int, type):
     clustering = []
     # read the data 
     df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 's1', f'{type}', '0.csv'))
+    ids = df['_id']
     df = df[df.columns[0:-1]]
 
     clustering.append({
@@ -30,17 +31,18 @@ def s1(size: int, type):
         'segment': [0] * df.shape[0],
         'stream': [-1] * df.shape[0],
         'targets': list(df['cluster'].values),
-        'is_included': df.shape[0] * [True]
+        'is_included': df.shape[0] * [True],
+        'ids': ids
     })
     df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', f'{type}', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
     df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 's1', f'{type}', 'tabular', f'{size}', f'initial_clustering_data.csv'))
 
-    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values)
+    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values, ids=ids)
     metrics_df =  pd.DataFrame({
             # 'connectivity': [metrics_dict['connectivity']],
             'SI': [metrics_dict['SI']],
-            'S': [metrics_dict['S']],
-            'DB': [metrics_dict['DB']],
+            # 'S': [metrics_dict['S']],
+            # 'DB': [metrics_dict['DB']],
             'F1': [metrics_dict['F1']],
             'JI': [metrics_dict['JI']]
         })
@@ -99,8 +101,8 @@ def synthetic(num_dimentions=2, stream_number=0, size=3):
     metrics_df =  pd.DataFrame({
             'connectivity': [metrics_dict["connectivity"]],
             'SI': [metrics_dict["SI"]],
-            'S': [metrics_dict["S"]],
-            "DB": [metrics_dict["DB"]]
+            # 'S': [metrics_dict["S"]],
+            # "DB": [metrics_dict["DB"]]
         })
     write_to_csv(filename='initial_clustering_metrics', 
                 data=metrics_df, 

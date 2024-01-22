@@ -225,7 +225,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
     # calculate evaluation metrics
     metrics, metrics_without = metrics_by_segments(segments, batch_size, 
                                                    type='original', 
-                                                   path=['..', 'results', 'ampds', f'{type}', f'{batch_size}', 'tabular', ], 
+                                                   path=['..', 'results', 'ampds', f'{type}', f'{batch_size}', 'tabular'], 
                                                    true_labels=False,
                                                    metric=metric)
     
@@ -304,9 +304,9 @@ def experiment2():
 
 if __name__ == '__main__':
     experiment1(type='original')
-    experiment1(type='original_previous')
-    experiment1(type='continuous')
-    experiment1(type='continuous_previous')
+    # experiment1(type='original_previous')
+    # experiment1(type='continuous')
+    # experiment1(type='continuous_previous')
 
     # experiment2()
 

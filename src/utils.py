@@ -497,7 +497,7 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, 
 def update_segments_dict(segments:dict, window_segement: int, initial_clustering: dict):
     segments[window_segement].append(initial_clustering)
 
-def metrics_by_segments(segments, batch_size, path, true_labels, type='continuous', metric='euclidean'):
+def metrics_by_segments(segments, batch_size, path, true_labels, type='continuous', metric='euclidean', index=-5):
     metrics = []
     metrics_without = []
     data = pd.DataFrame()

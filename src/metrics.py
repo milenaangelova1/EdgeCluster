@@ -14,7 +14,7 @@ from sklearn.metrics import (pairwise_distances, homogeneity_score, silhouette_s
     jaccard_score
     )
 
-def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean'):
+def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean', ids=None):
     F1 = None
     _homogeneity_score = None
     SI = None
@@ -41,8 +41,14 @@ def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean'):
         # s = calinski_harabasz_score(data, pred_labels)
         # DB = davies_bouldin_score(data, pred_labels)
     ICav = IC_av(distances, pred_labels)
+
+    if ids:
+        data['cluster'] = pred_labels
+        data['_id'] = ids
+        F1 = cluster_wise_f_measure(data)
+        JI = cluster_wise_jaccard(data)
+
     if len(true_labels) > 1:
-        F1 = f_measure(pred_labels, true_labels)
         _homogeneity_score = homogeneity_score(true_labels, pred_labels)
         # RI = rand_score(true_labels, pred_labels)
         # ARI = adjusted_rand_score(true_labels, pred_labels)
@@ -52,7 +58,6 @@ def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean'):
         # CS = completeness_score(true_labels, pred_labels)
         # V = v_measure_score(true_labels, pred_labels, beta=1.0)
         # FMI = fowlkes_mallows_score(true_labels, pred_labels)
-        JI = calculate_jaccard_score(true_labels, pred_labels)
     return {
         # "connectivity": connectivity, 
         "F1": F1, 
@@ -73,6 +78,17 @@ def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean'):
     }
 
 # F1
+def cluster_wise_f_measure(data):
+    sum = 0
+    unique_clusters_predicted = sorted(data['cluster'].unique())
+    for cluster in unique_clusters_predicted:
+    	predicted_cluster = data[data['cluster'] == cluster]
+    	true_cluster = cluster_with_max_shared(predicted_cluster, data)
+    	sum += f_measure(set(predicted_cluster['_id']), set(true_cluster['_id']))
+    
+    length = len(unique_clusters_predicted)
+    return (sum / length)
+
 def f_measure(pred, true):
     value = (2 * len(pred & true)) / (len(true) + len(pred))
     return value
@@ -366,8 +382,33 @@ def calculate_connectivity(X_train, y_train, columns, n_neighbors, metric=None, 
     #sorted_dataframe = dataframe.sort_values(["CONN"], ascending=[True])
     return dataframe
 
-# def calculate_jaccard_score(y_true, y_pred):
-#     return (len(y_pred & y_true)) / (len(y_true) + len(y_pred) - len(y_true & y_pred))
 
-def calculate_jaccard_score(y_true, y_pred):
-    return jaccard_score(y_true, y_pred)
+# Jaccard index
+def cluster_with_max_shared(predicted_cluster, data):
+	predicted = set(predicted_cluster['_id'])
+	true = data['actual_cluster'].unique()
+	max_cluster = 0
+	max_session = 0
+
+	for label in true:
+		cluster = data[data['actual_cluster'] == label]
+		same_cluster = len(predicted & set(cluster['_id']))
+		if same_cluster > max_cluster:
+			max_cluster = same_cluster
+			max_session = label
+	return data[data['actual_cluster'] == max_session]
+
+def cluster_wise_jaccard(data):
+	sum = 0
+	unique_clusters_predicted = sorted(data['cluster'].unique())
+	for cluster in unique_clusters_predicted:
+		predicted_cluster = data[data['cluster'] == cluster]
+		true_cluster = cluster_with_max_shared(predicted_cluster, data)
+		sum += jaccard_measure(set(predicted_cluster['_id']), set(true_cluster['_id']))
+
+	length = len(unique_clusters_predicted)
+	return (sum / length)
+
+
+def jaccard_measure(y_true, y_pred):
+    return (len(y_pred & y_true)) / (len(y_true) + len(y_pred) - len(y_true & y_pred))
