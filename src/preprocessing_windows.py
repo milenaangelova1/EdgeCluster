@@ -20,19 +20,17 @@ def s1(num_segments: int, batch_size: int, type: str):
     # read the data
     for segment in range(1, num_segments + 1):
         df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 's1', f'{type}', f'{segment}.csv'))
-        ids = df['_id']
-        df = df[df.columns[0:-1]]
 
         if batch_size:
             for index in range(0, df.shape[0], batch_size):
                 new_df = df.iloc[index:index + batch_size, :]
                 clustering.append({
-                    'data': new_df.drop(['cluster'], axis=1),
+                    'data': new_df.drop(['cluster', '_id'], axis=1),
                     'stream': -1,
                     'segment': segment,
                     'target': list(new_df['cluster'].values),
                     'is_included': [False] * new_df.shape[0],
-                    'ids': ids
+                    'ids': list(new_df['_id'].values)
                 })
         else:
             clustering.append({

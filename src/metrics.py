@@ -42,9 +42,10 @@ def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean', id
         # DB = davies_bouldin_score(data, pred_labels)
     ICav = IC_av(distances, pred_labels)
 
-    if ids:
+    if ids is not None:
         data['cluster'] = pred_labels
         data['_id'] = ids
+        data['actual_cluster'] = true_labels
         F1 = cluster_wise_f_measure(data)
         JI = cluster_wise_jaccard(data)
 

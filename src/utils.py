@@ -142,6 +142,7 @@ def preprocessing_final_dataset(clustering: list):
         df['target'] = cluster['targets']
         df['segment'] = cluster['segment']
         df['stream'] = cluster['stream']
+        df['ids'] = cluster['ids']
         dfs.append(df)
     return pd.concat(dfs)
 
@@ -390,30 +391,30 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
     if merges:
         for cluster_label in merges:
             initial_clustering['clustering'][0]['data']['cluster'].replace(cluster_label, cluster, inplace=True)
-        window_data, segment, stream, target = find_window(list_of_windows, window_index)
+        window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         add_cluster_label(window_data, cluster)
         if not window_data is None:
-            add_window_data(initial_clustering, window_data, segment, stream, target)
+            add_window_data(initial_clustering, window_data, segment, stream, target, ids)
     elif windows:
-        window_data, segment, stream, target = find_window(list_of_windows, window_index)
+        window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         cluster_label = window['cluster']
         add_cluster_label(window_data, cluster_label)
-        add_window_data(initial_clustering, window_data, segment, stream, target)
+        add_window_data(initial_clustering, window_data, segment, stream, target, ids)
     elif deviated:
-        window_data, segment, stream, target = find_window(list_of_windows, window_index)
+        window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = -1
-        add_window_data(initial_clustering, window_data, segment, stream, target, is_included=False)
+        add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=False)
     elif matched:
-        window_data, segment, stream, target = find_window(list_of_windows, window_index)
+        window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
-        add_window_data(initial_clustering, window_data, segment, stream, target, is_included=False)
+        add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=False)
     else:
-        window_data, segment, stream, target = find_window(list_of_windows, window_index)
+        window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
         # Union between them
-        add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True)
+        add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=True)
 
-def add_window_data(initial_clustering, window_data, segment, stream, target, is_included=True, is_union=False):
+def add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=True, is_union=False):
     window_data['is_included'] = window_data.shape[0] * [is_included]
     df = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
     # if is_union:
@@ -432,11 +433,12 @@ def add_window_data(initial_clustering, window_data, segment, stream, target, is
     initial_clustering['clustering'][0]['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
     initial_clustering['clustering'][0]['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
     initial_clustering['clustering'][0]['targets'] = list(initial_clustering['clustering'][0]['targets']) + target
+    initial_clustering['clustering'][0]['ids'] = list(initial_clustering['clustering'][0]['ids']) + ids
     initial_clustering['clustering'][0]['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
             
 def find_window(list_of_windows, window_index):
     window_data = list_of_windows['clustering'][window_index]
-    return window_data['data'], window_data['segment'], window_data['stream'], window_data['target']
+    return window_data['data'], window_data['segment'], window_data['stream'], window_data['target'], window_data['ids']
 
 def add_cluster_label(clustering, cluster):
     clustering["cluster"] = clustering.shape[0] * [cluster]
@@ -470,7 +472,7 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, 
     if true_labels:
         metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values)
     else:
-        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, metric=metric)
+        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values, ids=df["ids"], metric=metric)
     metrics_df =  pd.DataFrame({
         # 'connectivity': [metrics_dict["connectivity"]],
         "F1": [metrics_dict["F1"]],
@@ -497,7 +499,7 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, 
 def update_segments_dict(segments:dict, window_segement: int, initial_clustering: dict):
     segments[window_segement].append(initial_clustering)
 
-def metrics_by_segments(segments, batch_size, path, true_labels, type='continuous', metric='euclidean', index=-5):
+def metrics_by_segments(segments, batch_size, path, true_labels, type='continuous', metric='euclidean'):
     metrics = []
     metrics_without = []
     data = pd.DataFrame()
