@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
 import math
-from src.colors import COLORS
+from colors import COLORS
 
 
-from src.metrics import evalutation_report
+from metrics import evalutation_report
 
 def dist(vector1: list, vector2: list) -> float:
     """

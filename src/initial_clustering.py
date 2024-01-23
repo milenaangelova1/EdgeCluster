@@ -9,7 +9,7 @@ from metrics import calculate_connectivity, IC_av, evalutation_report
 from fastdtw import fastdtw
 from utils import write_to_csv
 
-from src.utils import calculate_hyper_rectangle_features
+from utils import calculate_hyper_rectangle_features
 
 
 def s1(size: int, type):

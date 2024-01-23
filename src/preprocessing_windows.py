@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import numpy as np
 
-from src.utils import calculate_hyper_rectangle_features
+from utils import calculate_hyper_rectangle_features
 
 def s1(num_segments: int, batch_size: int, type: str):
     """
