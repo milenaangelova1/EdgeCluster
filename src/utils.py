@@ -445,6 +445,7 @@ def add_cluster_label(clustering, cluster):
 
 def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, metric='euclidean'):
     df = final_df.copy()
+    ids = None
     if is_included:
         df = df[df["is_included"] == True]
 
@@ -469,10 +470,15 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, 
         "segment": [segment],
         "stream": "-"
     })
+
+    if 'ids' in df.columns:
+        ids = df['ids']
+        df.drop(['ids'], axis=1, inplace=True)
+
     if true_labels:
-        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values)
+        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values, ids=ids)
     else:
-        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values, ids=df["ids"], metric=metric)
+        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values, ids=ids, metric=metric)
     metrics_df =  pd.DataFrame({
         # 'connectivity': [metrics_dict["connectivity"]],
         "F1": [metrics_dict["F1"]],
