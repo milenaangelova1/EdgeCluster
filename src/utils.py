@@ -71,7 +71,7 @@ def recalculate_window_params(c: dict, w: dict) -> dict:
 
     average_high = (c["high"] + w["high"]) / 2
     average_low = (c["low"] + w["low"]) / 2
-    average_mean = (average_high + average_low) / 2
+    average_mean = (average_high + average_low)
 
     return {
         "high": np.array(average_high), 
@@ -142,9 +142,10 @@ def preprocessing_final_dataset(clustering: list):
         df['target'] = cluster['targets']
         df['segment'] = cluster['segment']
         df['stream'] = cluster['stream']
-        df['ids'] = cluster['ids']
+        if 'ids' in cluster.keys():
+            df['ids'] = cluster['ids']
         dfs.append(df)
-    return pd.concat(dfs)
+    return pd.concat(dfs, ignore_index=True, sort=False)
 
 def _draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, color_pallete: str, batch_size: int, path: str):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
@@ -433,12 +434,16 @@ def add_window_data(initial_clustering, window_data, segment, stream, target, id
     initial_clustering['clustering'][0]['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
     initial_clustering['clustering'][0]['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
     initial_clustering['clustering'][0]['targets'] = list(initial_clustering['clustering'][0]['targets']) + target
-    initial_clustering['clustering'][0]['ids'] = list(initial_clustering['clustering'][0]['ids']) + ids
+    if 'ids' in initial_clustering['clustering'][0]:
+        initial_clustering['clustering'][0]['ids'] = list(initial_clustering['clustering'][0]['ids']) + ids
     initial_clustering['clustering'][0]['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
             
 def find_window(list_of_windows, window_index):
     window_data = list_of_windows['clustering'][window_index]
-    return window_data['data'], window_data['segment'], window_data['stream'], window_data['target'], window_data['ids']
+    ids = None
+    if 'ids' in window_data.keys():
+        ids = window_data['ids']
+    return window_data['data'], window_data['segment'], window_data['stream'], window_data['target'], ids
 
 def add_cluster_label(clustering, cluster):
     clustering["cluster"] = clustering.shape[0] * [cluster]
@@ -478,7 +483,7 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, 
     if true_labels:
         metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values, ids=ids)
     else:
-        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, true_labels=df["target"].values, ids=ids, metric=metric)
+        metrics_dict = evalutation_report(data=df[df.columns[:-5]], pred_labels=df["cluster"].values, ids=ids, metric=metric)
     metrics_df =  pd.DataFrame({
         # 'connectivity': [metrics_dict["connectivity"]],
         "F1": [metrics_dict["F1"]],
