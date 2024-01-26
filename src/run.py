@@ -18,15 +18,15 @@ def experiment_s1_data(num_segments, batch_size, type):
     list_of_windows = pw.s1(num_segments=num_segments, batch_size=batch_size, type=type.split("_")[0])
     initial_clustering = ic.s1(size=batch_size, type=type.split("_")[0])
 
-    draw_graph(df_metrics = initial_clustering['clustering_metrics'],
-            window_metrics={},
-            filename='initial_clustering', 
-            title='Initial clustering of S1 data', 
-            xaxis_label='Feature 1', 
-            yaxis_label='Feature 2', 
-            batch_size=batch_size,
-            path=['..', 'results', 's1', f'{type}', 'plots'],
-            initial_graph=True)
+    # draw_graph(df_metrics = initial_clustering['clustering_metrics'],
+    #         window_metrics={},
+    #         filename='initial_clustering', 
+    #         title='Initial clustering of S1 data', 
+    #         xaxis_label='Feature 1', 
+    #         yaxis_label='Feature 2', 
+    #         batch_size=batch_size,
+    #         path=['..', 'results', 's1', f'{type}', 'plots'],
+    #         initial_graph=True)
     
     # keep all the clustering solutions
     # the latest one is the final one
@@ -45,14 +45,14 @@ def experiment_s1_data(num_segments, batch_size, type):
         update_segments_dict(segments, window['segment'], initial_clustering)
         print(f"The EdgeCluster completed for a window {index}")
         print(f"Start plotting a graph for a window {index}")
-        draw_graph(df_metrics = clustering,
-            window_metrics=[window],
-            filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
-            title=f'Clustering of S1 data for window {index}', 
-            xaxis_label='Feature 1', 
-            yaxis_label='Feature 2', 
-            batch_size=batch_size,
-            path = ['..', 'results', 's1', f'{type}', 'plots'])
+        # draw_graph(df_metrics = clustering,
+        #     window_metrics=[window],
+        #     filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
+        #     title=f'Clustering of S1 data for window {index}', 
+        #     xaxis_label='Feature 1', 
+        #     yaxis_label='Feature 2', 
+        #     batch_size=batch_size,
+        #     path = ['..', 'results', 's1', f'{type}', 'plots'])
         print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
         print(f"Summary for a window {index}")
@@ -232,7 +232,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
 def experiment1(type='continous'):
-    size_windows = [3, 4, 6, 8, 12, 24, 30, 32, 48]   # number of samples in each window
+    size_windows = [3,4,6,8,12,24,30,32,48]   # number of samples in each window
     # size_windows = [72]
     start_time = time.time()
 
