@@ -71,7 +71,7 @@ def recalculate_window_params(c: dict, w: dict) -> dict:
 
     average_high = (c["high"] + w["high"]) / 2
     average_low = (c["low"] + w["low"]) / 2
-    average_mean = (average_high + average_low)
+    average_mean = (average_high + average_low) / 2
 
     return {
         "high": np.array(average_high), 
