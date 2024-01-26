@@ -1,5 +1,5 @@
 from ast import literal_eval
-from utils import dist, recalculate_window_params, find_the_closest_cluster, update_initial_clustering, remove_cluster_from_clustering
+from utils import dist, recalculate_cluster_params, find_the_closest_cluster, update_initial_clustering, remove_cluster_from_clustering
 
 class EdgeCluster:
     """
@@ -49,25 +49,20 @@ class EdgeCluster:
         elif (dist(cluster['low'], cluster['mean']) >= dist(cluster['mean'], window['mean'])) or (dist(cluster['mean'], window['mean']) <= dist(window['mean'], window['high'])):
             # (D(l_i, m_i) >= D(m_i, m_w)) or (D(m_i, m_w) <= D(m_w, h_w))
             # merging c and w and recalculating the window - low, high, and mean vectors.
-            cluster = recalculate_window_params(cluster, window)
+            cluster = recalculate_cluster_params(cluster, window)
             update_initial_clustering(cluster, initial_clustering)
             
-            for _ in range(len(initial_clustering)):
-                temp_clustering = initial_clustering.copy()
-                temp_clustering = remove_cluster_from_clustering(temp_clustering, cluster_for_removing = cluster)
-                j = find_the_closest_cluster(cluster, temp_clustering)
-                
-                if not j:
-                    break
+            temp_clustering = initial_clustering.copy()
+            temp_clustering = remove_cluster_from_clustering(temp_clustering, cluster_for_removing = cluster)
+            closed_cluster = find_the_closest_cluster(cluster, temp_clustering)
 
-                if cluster['cluster'] != j['cluster'] and ((dist(cluster['low'], j['mean']) >= dist(cluster['mean'], j['mean'])) or (dist(cluster['mean'], j['mean']) <= dist(j['mean'], j['high']))):
-                    # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
-                    # merge clusters c and j. Merging will be union
-                    cluster = recalculate_window_params(cluster, j)
-                    # find and change the cluster into initial clustering solution
-                    update_initial_clustering(cluster, initial_clustering)
-                    initial_clustering = remove_cluster_from_clustering(initial_clustering, cluster_for_removing = j)
-                    merges.append(j['cluster'])
+            if ((dist(cluster['low'], closed_cluster['mean']) >= dist(cluster['mean'], closed_cluster['mean'])) or (dist(cluster['mean'], closed_cluster['mean']) <= dist(closed_cluster['mean'], closed_cluster['high']))):
+                # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
+                # merge clusters c and j. Merging will be union
+                cluster = recalculate_cluster_params(cluster, closed_cluster)
+                # find and change the cluster into initial clustering solution
+                update_initial_clustering(cluster, initial_clustering)
+                merges.append(closed_cluster['cluster'])
                 
         elif (dist(cluster['low'], cluster['mean']) < dist(cluster['mean'], window['mean'])) and (dist(cluster['mean'], window['mean']) > dist(window['mean'], window['high'])):
             # (D(l_i, m_i) < D(m_i, m_w)) and (D(m_i, m_w) > D(m_w, h_w))

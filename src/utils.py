@@ -52,9 +52,9 @@ def calculate_hyper_rectangle_features(cluster: list) -> dict:
             "mean": np.array(means)
     }
 
-def recalculate_window_params(c: dict, w: dict) -> dict:
+def recalculate_cluster_params(c: dict, w: dict) -> dict:
     """
-    Recalculating the window low, high value vectors of c.
+    Recalculating the low, high value vectors of c.
 
     :param: c - a dict with keys: high, low, and mean.
     :param: w - a dict with keys: high, low, and mean.
@@ -71,7 +71,7 @@ def recalculate_window_params(c: dict, w: dict) -> dict:
 
     average_high = (c["high"] + w["high"]) / 2
     average_low = (c["low"] + w["low"]) / 2
-    average_mean = (average_high + average_low) / 2
+    average_mean = (c["mean"] + w["mean"]) / 2
 
     return {
         "high": np.array(average_high), 
