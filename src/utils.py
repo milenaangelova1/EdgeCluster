@@ -82,6 +82,11 @@ def recalculate_cluster_params(c: dict, w: dict) -> dict:
         "stream": c["stream"],
         "cluster_value_count": round((c["cluster_value_count"] + w["cluster_value_count"]) / 2)
     }
+
+def remove_cluster_metrics(cluster, initial_clustering):
+    found_cluster = list(filter(lambda x: x['cluster']==cluster['cluster'], initial_clustering['clustering_metrics']))[0]
+    index = initial_clustering['clustering_metrics'].index(found_cluster)
+    del(initial_clustering['clustering_metrics'][index])
     
 def find_the_closest_cluster(w: dict, C: list) -> dict:
     """
@@ -116,11 +121,18 @@ def update_initial_clustering(cluster_metrics, initial_clustering):
         if cluster['cluster'] == cluster_metrics['cluster'] and cluster['stream'] == cluster_metrics['stream']:
             index_cluster = index
             break
-    if index_cluster:
-        initial_clustering[index_cluster]['high'] = cluster_metrics['high']
-        initial_clustering[index_cluster]['low'] = cluster_metrics['low']
-        initial_clustering[index_cluster]['mean'] = cluster_metrics['mean']
-        initial_clustering[index_cluster]['cluster_value_count'] = cluster_metrics['cluster_value_count']
+    initial_clustering[index_cluster]['high'] = cluster_metrics['high']
+    initial_clustering[index_cluster]['low'] = cluster_metrics['low']
+    initial_clustering[index_cluster]['mean'] = cluster_metrics['mean']
+    initial_clustering[index_cluster]['cluster_value_count'] = cluster_metrics['cluster_value_count']
+
+def remove_closed_cluster_metrics(closed_cluster, initial_clustering):
+    index_cluster = None
+    for index, cluster in enumerate(initial_clustering):
+        if cluster['cluster'] == closed_cluster['cluster'] and cluster['stream'] == closed_cluster['stream']:
+            index_cluster = index
+            break
+    del(initial_clustering[index_cluster])
 
 def remove_cluster_from_clustering(initial_clustering, cluster_for_removing):
     index = next((index for (index, d) in enumerate(initial_clustering) if d["cluster"] == cluster_for_removing['cluster']), None)
@@ -231,8 +243,6 @@ def plot_rectangles(clusters: list):
         bottom = coord['bottom']
         width = coord['width']
         height = coord['height']
-        # right = coord['right']
-        # top = coord['top']
         mean = coord['mean']
 
         ax.plot(mean[0], mean[1], 'o', color=COLORS[coord['color']])
@@ -245,15 +255,6 @@ def plot_rectangles(clusters: list):
                 )
 
         ax.add_patch(p)
-
-        # ax.text(left, bottom, 'min',
-        #         horizontalalignment='left',
-        #         verticalalignment='top')
-
-        # ax.text(right, top, 'max',
-        #         horizontalalignment='right',
-        #         verticalalignment='bottom')
-
         handles.append(p)
     return handles, clusters
 
@@ -396,6 +397,7 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
         add_cluster_label(window_data, cluster)
         if not window_data is None:
             add_window_data(initial_clustering, window_data, segment, stream, target, ids)
+            add_correct_clustering_labels(initial_clustering, cluster)
     elif windows:
         window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         cluster_label = window['cluster']
@@ -408,28 +410,53 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
     elif matched:
         window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
-        add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=False)
+        add_window_data(initial_clustering, window_data, segment, stream, target, ids)
     else:
         window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
         # Union between them
         add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=True)
+        add_correct_clustering_labels(initial_clustering, cluster)
 
-def add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=True, is_union=False):
+
+def generate_check(df, high_vector, low_vector):
+    columns = df.columns
+    high_list = []
+    low_list = []
+    for column, h_vector, l_vector in zip(columns, high_vector, low_vector):
+        high_list.append(df[column] <= h_vector)
+        low_list.append(df[column] >= l_vector)
+
+    high_list = any(high_list)
+    low_list = any(low_list)
+    return any(high_list + low_list)
+
+def find_indexes(df, high_vector, low_vector):
+    columns = df.columns
+    result = []
+   
+    for column, h_vector, l_vector in zip(columns, high_vector, low_vector):
+        calc = ((df[column] <= h_vector) & (df[column] >= l_vector))
+        result.append(set(calc[~calc].index))
+        
+    indexes = list(set.union(*result))
+    return indexes
+
+def add_correct_clustering_labels(initial_clustering, cluster):
+    cluster_params = list(filter(lambda x: x['cluster']==cluster, initial_clustering['clustering_metrics']))[0]
+    high_vector = list(cluster_params['high'])
+    low_vector = list(cluster_params['low'])
+    df = initial_clustering['clustering'][0]['data'].copy()
+    df = df[df['cluster']==cluster]
+    indexes = find_indexes(df, high_vector, low_vector)
+    if len(indexes) > 0:
+        initial_clustering['clustering'][0]['data'].loc[indexes, 'cluster'] = initial_clustering['clustering'][0]['data'].loc[indexes, 'cluster'].shape[0] * [-2]
+        initial_clustering['clustering'][0]['data'].loc[indexes, 'is_included'] = initial_clustering['clustering'][0]['data'].loc[indexes, 'is_included'].shape[0] * [False]
+
+def add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=True):
     window_data['is_included'] = window_data.shape[0] * [is_included]
     df = pd.concat([initial_clustering['clustering'][0]['data'], window_data], ignore_index=True, sort=False)
-    # if is_union:
-    #     df['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
-    #     df['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
-    #     df['target'] = list(initial_clustering['clustering'][0]['targets']) + target
-    #     df['is_included'] = list(initial_clustering['clustering'][0]['is_included']) + list(window_data['is_included'].values)
-    #     df = df.drop_duplicates(df.columns[:-4]).reset_index(drop=True)
-    #     initial_clustering['clustering'][0]['data'] = df[df.columns[:-3]]
-    #     initial_clustering['clustering'][0]['segment'] = df['segment']
-    #     initial_clustering['clustering'][0]['stream'] = df['stream']
-    #     initial_clustering['clustering'][0]['targets'] = df['target']
-    #     initial_clustering['clustering'][0]['is_included'] = df['is_included']
-    # else:
+
     initial_clustering['clustering'][0]['data'] = df
     initial_clustering['clustering'][0]['segment'] = list(initial_clustering['clustering'][0]['segment']) + [segment] * window_data.shape[0]
     initial_clustering['clustering'][0]['stream'] = list(initial_clustering['clustering'][0]['stream']) + [stream] * window_data.shape[0]
@@ -460,7 +487,7 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, 
         "F1": [np.nan],
         "SI": [np.nan],
         "JI": [np.nan],
-        "homogeneity": [np.nan],
+        # "homogeneity": [np.nan],
         # "RI": [np.nan],
         # "ARI": [np.nan],
         # "MI": [np.nan],
@@ -489,7 +516,7 @@ def evaluation_metrics(final_df, segment, is_included=False, true_labels= True, 
         "F1": [metrics_dict["F1"]],
         "SI": [metrics_dict["SI"]],
         "JI": [metrics_dict["JI"]],
-        "homogeneity": [metrics_dict["homogeneity"]],
+        # "homogeneity": [metrics_dict["homogeneity"]],
         # "RI": [metrics_dict["RI"]],
         # "ARI": [metrics_dict["ARI"]],
         # "MI": [metrics_dict["MI"]],
