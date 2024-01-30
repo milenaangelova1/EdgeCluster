@@ -1,7 +1,11 @@
 from EdgeCluster import EdgeCluster
 import initial_clustering as ic
 import preprocessing_windows as pw
-from utils import (draw_graph, evaluation_metrics, 
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+from utils import (draw_graph, 
                    get_label, metrics_by_segments, 
                    summary, update_segments_dict, 
                    write_to_csv, 
@@ -53,6 +57,15 @@ def experiment_s1_data(num_segments, batch_size, type):
             yaxis_label='Feature 2', 
             batch_size=batch_size,
             path = ['..', 'results', 's1', f'{type}', 'plots'])
+        
+        d = initial_clustering['clustering'][0]['data']
+        palette = sns.color_palette('hls', n_colors=len(set(d['cluster'])))
+    
+        sns.scatterplot(x=d['x'], y=d['y'], hue=d['cluster'], palette=palette).set(title=f"Window {index}")
+        plt.xticks(np.arange(0, 1.1, 0.1))  
+        plt.yticks(np.arange(0, 1.1, 0.1))
+        plt.savefig(os.path.join('results', 's1', f'{type}', 'plots', f'{batch_size}', f'scatter_clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}.png'))
+        
         print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
         print(f"Summary for a window {index}")

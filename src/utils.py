@@ -61,13 +61,6 @@ def recalculate_cluster_params(c: dict, w: dict) -> dict:
 
     :returns: c - with new values for high, low and mean.
     """
-    
-    # lows_df = pd.DataFrame([c['low'], w['low']])
-    # highs_df = pd.DataFrame([c['high'], w['high']])
-
-    # highs = highs_df.max()
-    # lows = lows_df.min()
-    # means = (highs + lows) / 2
 
     average_high = (c["high"] + w["high"]) / 2
     average_low = (c["low"] + w["low"]) / 2
@@ -142,8 +135,8 @@ def find_the_closest_cluster(w: dict, C: list) -> dict:
 
 def update_initial_clustering(cluster_metrics, initial_clustering):
     index_cluster = None
-    for index, cluster in enumerate(initial_clustering):
-        if cluster['cluster'] == cluster_metrics['cluster'] and cluster['stream'] == cluster_metrics['stream']:
+    for index, c in enumerate(initial_clustering):
+        if c['cluster'] == cluster_metrics['cluster'] and c['stream'] == cluster_metrics['stream']:
             index_cluster = index
             break
     initial_clustering[index_cluster]['high'] = cluster_metrics['high']
@@ -375,8 +368,8 @@ def get_label(clustering):
         label += 'matched'
     elif clustering['changes']['windows']:
         label += 'window'
-    else:
-        label +='recalculation_without_merging'
+    elif clustering['changes']['merge_with_window']:
+        label +='merge_cluster_and_window'
     return label
 
 def summary(final_clustering):
@@ -395,8 +388,8 @@ def summary(final_clustering):
         window_df = window_df.drop(['cluster'], axis=1)
     window_df.columns = ['window high', 'window low', 'window mean', 'window segment', 'window stream']
 
-    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows']])
-    changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster', 'new clusters (labels)']
+    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows', 'merge_with_window']])
+    changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster', 'new clusters (labels)', 'merge between a window and a cluster']
 
     df = pd.concat([closed_cluster_df, cluster_df, window_df, changes_df], axis=1)
     return df
@@ -411,6 +404,7 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
     windows = clustering['changes']['windows']
     deviated = clustering['changes']['deviated']
     matched = clustering['changes']['matched']
+    merge_with_window = clustering['changes']['merge_with_window']
 
     cluster = clustering['closed_cluster']['cluster']
     window = clustering['window']
@@ -435,7 +429,7 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
         window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
         add_window_data(initial_clustering, window_data, segment, stream, target, ids)
-    else:
+    elif merge_with_window:
         window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
         # Union between them
@@ -445,7 +439,7 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
 def find_indexes(df, high_vector, low_vector):
     indexes = [] 
     for index, row in df.iterrows():
-        if high_vector <= list(row) >= low_vector:
+        if all((np.array(low_vector) <= np.array(list(row)))) and all((np.array(list(row)) >= np.array(high_vector))):
             indexes.append(index)
     return indexes
 
@@ -459,8 +453,8 @@ def add_correct_clustering_labels(initial_clustering, cluster):
 
     indexes = find_indexes(df, high_vector, low_vector)
     if len(indexes) > 0:
-        initial_clustering['clustering'][0]['data'].loc[indexes, 'cluster'] = initial_clustering['clustering'][0]['data'].loc[indexes, 'cluster'].shape[0] * [-2]
-        initial_clustering['clustering'][0]['data'].loc[indexes, 'is_included'] = initial_clustering['clustering'][0]['data'].loc[indexes, 'is_included'].shape[0] * [False]
+        initial_clustering['clustering'][0]['data'].loc[indexes, 'cluster'] = initial_clustering['clustering'][0]['data'].loc[indexes, 'cluster'].replace(cluster, -2)
+        initial_clustering['clustering'][0]['data'].loc[indexes, 'is_included'] = initial_clustering['clustering'][0]['data'].loc[indexes, 'is_included'].replace(True, False)
 
 def add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=True):
     window_data['is_included'] = window_data.shape[0] * [is_included]
