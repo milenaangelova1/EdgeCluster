@@ -1,5 +1,6 @@
 from utils import (dist, 
-                   recalculate_cluster_params, 
+                   recalculate_cluster_params,
+                   recalculate_cluster_vectors, 
                    find_the_closest_cluster, 
                    update_initial_clustering,
                    remove_cluster_from_clustering,
@@ -25,36 +26,18 @@ class EdgeCluster:
         if dist(cluster['mean'], window['mean']) > (dist(cluster['low'], cluster['mean']) + dist(window['mean'], window['high'])):
             # D(m_i, m_w) > (D(l_i, m_i) + D(m_w, h_w))
             deviated = True
-            return {
-                "clustering":initial_clustering, 
-                "closed_cluster": cluster, 
-                "changes": {
-                    "deviated": deviated,
-                    "matched": matched,
-                    "merges": merges,
-                    "windows": windows
-                },
-                "window": window
-            }
+        
         elif (dist(cluster['mean'], window['mean']) < dist(cluster['low'], cluster['mean'])) and (dist(cluster['mean'], window['mean']) < dist(window['mean'], window['high'])):
             # (D(m_i, m_w) < D(l_i, m_i)) and (D(m_i, m_w) < D(m_w, h_w))
+            new_cluster = recalculate_cluster_vectors(cluster, window)
+            update_initial_clustering(new_cluster, initial_clustering)
             matched = True
-            return {
-                "clustering":initial_clustering, 
-                "closed_cluster": cluster, 
-                "changes": {
-                    "deviated": deviated,
-                    "matched": matched,
-                    "merges": merges,
-                    "windows": windows
-                },
-                "window": window
-            }
+
         elif (dist(cluster['low'], cluster['mean']) >= dist(cluster['mean'], window['mean'])) or (dist(cluster['mean'], window['mean']) <= dist(window['mean'], window['high'])):
             # (D(l_i, m_i) >= D(m_i, m_w)) or (D(m_i, m_w) <= D(m_w, h_w))
             # merging c and w and recalculating the window - low, high, and mean vectors.
-            cluster = recalculate_cluster_params(cluster, window)
-            update_initial_clustering(cluster, initial_clustering)
+            new_cluster = recalculate_cluster_params(cluster, window)
+            update_initial_clustering(new_cluster, initial_clustering)
             
             temp_clustering = initial_clustering.copy()
             temp_clustering = remove_cluster_from_clustering(temp_clustering, cluster_for_removing = cluster)
@@ -70,11 +53,10 @@ class EdgeCluster:
                 if cluster['cluster'] != closed_cluster['cluster'] and ((dist(cluster['low'], closed_cluster['mean']) >= dist(cluster['mean'], closed_cluster['mean'])) or (dist(cluster['mean'], closed_cluster['mean']) <= dist(closed_cluster['mean'], closed_cluster['high']))):
                     # ((D(l_i, m_j ) >= D(m_i, m_j )) or (D(m_i, m_j ) <= D(m_j , h_j))
                     # merge clusters c and j. Merging will be union
-                    cluster = recalculate_cluster_params(cluster, closed_cluster)
+                    new_cluster = recalculate_cluster_params(cluster, closed_cluster)
                     remove_closed_cluster_metrics(closed_cluster, initial_clustering)
                     # find and change the cluster into initial clustering solution
-                    update_initial_clustering(cluster, initial_clustering)
-                    # temp_clustering = remove_cluster_from_clustering(temp_clustering, cluster_for_removing = closed_cluster)
+                    update_initial_clustering(new_cluster, initial_clustering)
                     merges.append(closed_cluster['cluster'])
                 
         elif (dist(cluster['low'], cluster['mean']) < dist(cluster['mean'], window['mean'])) and (dist(cluster['mean'], window['mean']) > dist(window['mean'], window['high'])):
@@ -97,5 +79,3 @@ class EdgeCluster:
             },
             "window": window
         }
-
-

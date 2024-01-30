@@ -61,7 +61,6 @@ def s1(size: int, type):
             cluster_metrics['cluster'] = label
             cluster_metrics['segment'] = cluster['segment']
             cluster_metrics['stream'] = cluster['stream']
-            cluster_metrics['cluster_value_count'] = c.shape[0]
             list_clusters_with_metrics.append(cluster_metrics)
            
     # calculate the high, low and mean of each window    

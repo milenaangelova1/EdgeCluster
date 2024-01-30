@@ -79,8 +79,33 @@ def recalculate_cluster_params(c: dict, w: dict) -> dict:
         "mean": np.array(average_mean),
         "cluster": c["cluster"], 
         "segment": c["segment"],
-        "stream": c["stream"],
-        "cluster_value_count": round((c["cluster_value_count"] + w["cluster_value_count"]) / 2)
+        "stream": c["stream"]
+    }
+
+def recalculate_cluster_vectors(c: dict, w: dict) -> dict:
+    """
+    Recalculating the low, high value vectors of c.
+
+    :param: c - a dict with keys: high, low, and mean.
+    :param: w - a dict with keys: high, low, and mean.
+
+    :returns: c - with new values for high, low and mean.
+    """
+    
+    lows_df = pd.DataFrame([c['low'], w['low']])
+    highs_df = pd.DataFrame([c['high'], w['high']])
+
+    highs = highs_df.max()
+    lows = lows_df.min()
+    means = (highs + lows) / 2
+
+    return {
+        "high": np.array(highs), 
+        "low": np.array(lows),
+        "mean": np.array(means),
+        "cluster": c["cluster"], 
+        "segment": c["segment"],
+        "stream": c["stream"]
     }
 
 def remove_cluster_metrics(cluster, initial_clustering):
@@ -124,7 +149,6 @@ def update_initial_clustering(cluster_metrics, initial_clustering):
     initial_clustering[index_cluster]['high'] = cluster_metrics['high']
     initial_clustering[index_cluster]['low'] = cluster_metrics['low']
     initial_clustering[index_cluster]['mean'] = cluster_metrics['mean']
-    initial_clustering[index_cluster]['cluster_value_count'] = cluster_metrics['cluster_value_count']
 
 def remove_closed_cluster_metrics(closed_cluster, initial_clustering):
     index_cluster = None
@@ -356,20 +380,20 @@ def get_label(clustering):
     return label
 
 def summary(final_clustering):
-    cluster_df = pd.json_normalize(final_clustering['clustering'], meta=[['high', 'low', 'mean', 'cluster', 'segment', 'stream', 'cluster_value_counts']])
+    cluster_df = pd.json_normalize(final_clustering['clustering'], meta=[['high', 'low', 'mean', 'cluster', 'segment', 'stream']])
     # if 'segment' in cluster_df.columns:
     #     cluster_df = cluster_df.drop(['segment', 'size'], axis=1)
-    cluster_df.columns = ['cluster high', 'cluster low', 'cluster mean', 'cluster label', 'cluster segment', 'cluster stream', 'cluster counts']
+    cluster_df.columns = ['cluster high', 'cluster low', 'cluster mean', 'cluster label', 'cluster segment', 'cluster stream']
     
     closed_cluster_df = pd.json_normalize(final_clustering['closed_cluster'], meta=[['high', 'low', 'mean', 'cluster', 'segment', 'stream']])
     # if 'segment' in closed_cluster_df.columns:
     #     closed_cluster_df = closed_cluster_df.drop(['segment'], axis=1)
-    closed_cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster segment', 'closed cluster stream', 'closed cluster counts']
+    closed_cluster_df.columns = ['closed cluster high', 'closed cluster low', 'closed cluster mean', 'closed cluster label', 'closed cluster segment', 'closed cluster stream']
 
-    window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream', 'cluster_value_count']])
+    window_df = pd.json_normalize(final_clustering['window'], meta=[['high', 'low', 'mean', 'segment', 'stream']])
     if 'cluster' in window_df.columns:
         window_df = window_df.drop(['cluster'], axis=1)
-    window_df.columns = ['window high', 'window low', 'window mean', 'window segment', 'window stream', 'window size']
+    window_df.columns = ['window high', 'window low', 'window mean', 'window segment', 'window stream']
 
     changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows']])
     changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster', 'new clusters (labels)']
