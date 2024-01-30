@@ -1,13 +1,13 @@
 import glob, os
 
 num_dimentions = 2 # 8 or 2
-folder = 'plots' # plots or tabular
+folder = 'tabular' # plots or tabular
 stream_number = 3 # 12 or 3
-file_extention = 'png' # png or csv
+file_extention = 'csv' # png or csv
 type = 'original' # continuous or original or continuous_previous or original_previous, gas, elec, water, weather
 
 for stream_num in range(stream_number):
-    for size in [12]:
+    for size in [3,4,6,8,12,24,30,32,48]:
         # path = os.path.join(os.path.dirname(__file__), '..', 'results', 'synthetic', f'{num_dimentions}-dim', f'{folder}', f'stream {stream_num}', f'{size}', f'*.{file_extention}')
         # for f in glob.glob(path):
         #     print(f)

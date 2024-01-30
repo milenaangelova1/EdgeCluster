@@ -23,7 +23,7 @@ def dist(vector1: list, vector2: list) -> float:
     """
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
 
-def calculate_hyper_rectangle_features(cluster: list) -> dict:
+def calculate_hyper_rectangle_features(cluster: pd.DataFrame) -> dict:
     """
     This method will calculate three vectors.
      - highs: vector of all max values in the current window
@@ -148,16 +148,14 @@ def write_to_csv(filename, data, path):
     data.to_csv(os.path.join(path, f'{filename}.csv'), index=False, sep=',')
 
 def preprocessing_final_dataset(clustering: list):
-    dfs = []
-    for cluster in clustering:
-        df = cluster['data']
-        df['target'] = cluster['targets']
-        df['segment'] = cluster['segment']
-        df['stream'] = cluster['stream']
-        if 'ids' in cluster.keys():
-            df['ids'] = cluster['ids']
-        dfs.append(df)
-    return pd.concat(dfs, ignore_index=True, sort=False)
+    final_clustering = clustering[0]
+    df = final_clustering['data']
+    df['target'] = final_clustering['targets']
+    df['segment'] = final_clustering['segment']
+    df['stream'] = final_clustering['stream']
+    if 'ids' in final_clustering.keys():
+        df['ids'] = final_clustering['ids']
+    return df
 
 def _draw_graph(df: pd.DataFrame, df_metrics, window_metrics, filename: str, title: str, xaxis_label: str, yaxis_label: str, color_pallete: str, batch_size: int, path: str):
     # plt.rcParams["figure.figsize"] = [7.00, 3.50]
@@ -313,6 +311,8 @@ def draw_graph(df_metrics, window_metrics, filename: str, title: str, xaxis_labe
     plt.xlabel(xaxis_label)
     plt.ylabel(yaxis_label)
     plt.title(title)
+    plt.xticks(np.arange(0, 1.1, 0.1))
+    plt.yticks(np.arange(0, 1.1, 0.1))
     
     path = os.path.join(os.path.dirname(__file__), *path)
     if not os.path.isdir(path):
@@ -418,28 +418,11 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
         add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=True)
         add_correct_clustering_labels(initial_clustering, cluster)
 
-
-def generate_check(df, high_vector, low_vector):
-    columns = df.columns
-    high_list = []
-    low_list = []
-    for column, h_vector, l_vector in zip(columns, high_vector, low_vector):
-        high_list.append(df[column] <= h_vector)
-        low_list.append(df[column] >= l_vector)
-
-    high_list = any(high_list)
-    low_list = any(low_list)
-    return any(high_list + low_list)
-
 def find_indexes(df, high_vector, low_vector):
-    columns = df.columns
-    result = []
-   
-    for column, h_vector, l_vector in zip(columns, high_vector, low_vector):
-        calc = ((df[column] <= h_vector) & (df[column] >= l_vector))
-        result.append(set(calc[~calc].index))
-        
-    indexes = list(set.union(*result))
+    indexes = [] 
+    for index, row in df.iterrows():
+        if high_vector <= list(row) >= low_vector:
+            indexes.append(index)
     return indexes
 
 def add_correct_clustering_labels(initial_clustering, cluster):
@@ -448,6 +431,8 @@ def add_correct_clustering_labels(initial_clustering, cluster):
     low_vector = list(cluster_params['low'])
     df = initial_clustering['clustering'][0]['data'].copy()
     df = df[df['cluster']==cluster]
+    df = df[df.columns[:-2]]
+
     indexes = find_indexes(df, high_vector, low_vector)
     if len(indexes) > 0:
         initial_clustering['clustering'][0]['data'].loc[indexes, 'cluster'] = initial_clustering['clustering'][0]['data'].loc[indexes, 'cluster'].shape[0] * [-2]

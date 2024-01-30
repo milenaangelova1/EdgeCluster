@@ -233,7 +233,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
 
 def experiment1(type='continous'):
     size_windows = [3, 4, 6,8,12,24,30,32,48]   # number of samples in each window
-    size_windows = [12]
+    size_windows = [48]
     start_time = time.time()
 
     # Experiment with S1 data
