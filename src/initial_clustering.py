@@ -233,7 +233,6 @@ def ampds(hour: int, type: str, size: int):
             cluster_metrics['cluster'] = label
             cluster_metrics['stream'] = cluster['stream']
             cluster_metrics['segment'] = cluster['segment']
-            cluster_metrics['cluster_value_count'] = c.shape[0]
             list_clusters_with_metrics.append(cluster_metrics)
 
     clustering[0]['data']['is_included'] = clustering[0]['data'].shape[0] * [True]

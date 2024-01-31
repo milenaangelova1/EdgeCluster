@@ -321,7 +321,7 @@ if __name__ == '__main__':
     # experiment1(type='continuous')
     experiment1(type='continuous_previous')
 
-    # experiment2()
+    experiment2()
 
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data
