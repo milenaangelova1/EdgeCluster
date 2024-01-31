@@ -439,8 +439,9 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
 def find_indexes(df, high_vector, low_vector):
     indexes = [] 
     for index, row in df.iterrows():
-        if all((np.array(low_vector) <= np.array(list(row)))) and all((np.array(list(row)) >= np.array(high_vector))):
+        if all((np.array(list(row)) >= np.array(low_vector))) and all((np.array(list(row)) <= np.array(high_vector))):
             indexes.append(index)
+    indexes = list(df.loc[df.index.difference(indexes)].index)
     return indexes
 
 def add_correct_clustering_labels(initial_clustering, cluster):

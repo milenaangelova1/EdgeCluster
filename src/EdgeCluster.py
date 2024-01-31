@@ -40,7 +40,7 @@ class EdgeCluster:
             new_cluster = recalculate_cluster_params(temp_cluster, window)
            
             update_initial_clustering(new_cluster, initial_clustering)
-            cluster = temp_cluster
+            # cluster = temp_cluster
             
             temp_clustering = initial_clustering.copy()
             temp_clustering = remove_cluster_from_clustering(temp_clustering, cluster_for_removing = new_cluster)
@@ -61,6 +61,8 @@ class EdgeCluster:
                     # find and change the cluster into initial clustering solution
                     update_initial_clustering(new_next_cluster, initial_clustering)
                     merges.append(closed_cluster['cluster'])
+                else:
+                    merge_with_window = True
             else:
                 merge_with_window = True
 
