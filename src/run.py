@@ -245,7 +245,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
 
 def experiment1(type='continous'):
     size_windows = [3,4,6,8,12,24,30,32,48]   # number of samples in each window
-    size_windows = [48]
+    # size_windows = [24]
     start_time = time.time()
 
     # Experiment with S1 data
@@ -316,12 +316,12 @@ def experiment2():
 
 
 if __name__ == '__main__':
-    # experiment1(type='original')
+    experiment1(type='original')
     # experiment1(type='original_previous')
     # experiment1(type='continuous')
     # experiment1(type='continuous_previous')
 
-    experiment2()
+    # experiment2()
 
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data
