@@ -244,7 +244,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
 def experiment1(type='continous'):
-    size_windows = [12,24,30,32,48]   # number of samples in each window
+    size_windows = [3,4,6,8,12,24,30,32,48]   # number of samples in each window
     # size_windows = [24]
     start_time = time.time()
 
@@ -281,10 +281,11 @@ def experiment2():
     start_time = time.time()
     
     types = ['gas', 'water', 'elec', 'weather']
-    # types = ['elec']
+    # types = ['gas']
     hours = [6, 8, 4, 4]
-    # hours = [4]
+    # hours = [6]
     size_windows = [3, 5, 7] # daily profiles
+    # size_windows = [7]
     metrics = ['euclidean', 'euclidean', 'euclidean', 'canberra']
 
     final_data_metrics = []
@@ -306,12 +307,12 @@ def experiment2():
         final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
         write_to_csv(filename='final_evalution_metrics', 
                     data=final_data_metrics_df, 
-                    path = ['..', 'results', 'ampds', f'{type}', f'{size}', 'tabular'])
+                    path = ['..', 'results', 'ampds', f'{type}'])
         
         final_data_metrics_df = pd.concat(final_data_metrics_without, ignore_index=True, sort=False)
         write_to_csv(filename='final_evalution_metrics_without_deviation_and_matching', 
                     data=final_data_metrics_df, 
-                    path = ['..', 'results', 'ampds', f'{type}', f'{size}', 'tabular'])
+                    path = ['..', 'results', 'ampds', f'{type}'])
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
@@ -319,9 +320,9 @@ if __name__ == '__main__':
     # experiment1(type='original')
     # experiment1(type='original_previous')
     # experiment1(type='continuous')
-    experiment1(type='continuous_previous')
+    # experiment1(type='continuous_previous')
 
-    # experiment2()
+    experiment2()
 
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data
