@@ -44,6 +44,8 @@ def calculate_hyper_rectangle_features(cluster: pd.DataFrame) -> dict:
   
     highs = cluster.max()
     lows = cluster.min()
+    # todo: change the mean formula
+    # means = cluster.mean()
     means = (highs + lows) / 2
 
     return {
