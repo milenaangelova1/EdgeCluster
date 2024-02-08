@@ -40,7 +40,7 @@ def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean', id
         SI = calculate_silhouette(distances, pred_labels)
         # s = calinski_harabasz_score(data, pred_labels)
         # DB = davies_bouldin_score(data, pred_labels)
-    # ICav = IC_av(distances, pred_labels)
+    ICav = IC_av(distances, pred_labels)
 
     if ids is not None:
         data['cluster'] = pred_labels
