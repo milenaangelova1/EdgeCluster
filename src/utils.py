@@ -370,8 +370,10 @@ def get_label(clustering):
         label += 'matched'
     elif clustering['changes']['windows']:
         label += 'window'
-    elif clustering['changes']['merge_with_window']:
-        label +='merge_cluster_and_window'
+    elif clustering['changes']['merge_cluster_with_window']:
+        label +='merge_cluster_with_window'
+    elif clustering['changes']['merge_window_with_cluster']:
+        label +='merge_window_with_cluster'
     return label
 
 def summary(final_clustering):
@@ -390,8 +392,8 @@ def summary(final_clustering):
         window_df = window_df.drop(['cluster'], axis=1)
     window_df.columns = ['window high', 'window low', 'window mean', 'window segment', 'window stream']
 
-    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows', 'merge_with_window']])
-    changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster', 'new clusters (labels)', 'merge between a window and a cluster']
+    changes_df = pd.json_normalize(final_clustering['changes'], meta=[['deviated', 'matched', 'merges', 'windows', 'merge_cluster_with_window', 'merge_with_window']])
+    changes_df.columns = ['is the cluster and the window deviated', 'is the cluster and the window matched', 'cluster labels that are merged together into a cluster', 'new clusters (labels)', 'merge a cluster with a window', 'merge a window with a cluster']
 
     df = pd.concat([closed_cluster_df, cluster_df, window_df, changes_df], axis=1)
     return df
@@ -406,7 +408,8 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
     windows = clustering['changes']['windows']
     deviated = clustering['changes']['deviated']
     matched = clustering['changes']['matched']
-    merge_with_window = clustering['changes']['merge_with_window']
+    merge_window_with_cluster = clustering['changes']['merge_window_with_cluster']
+    merge_cluster_with_window = clustering['changes']['merge_cluster_with_window']
 
     cluster = clustering['closed_cluster']['cluster']
     window = clustering['window']
@@ -431,7 +434,12 @@ def move_data(initial_clustering, clustering, list_of_windows, window_index):
         window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
         add_window_data(initial_clustering, window_data, segment, stream, target, ids)
-    elif merge_with_window:
+    elif merge_cluster_with_window:
+        window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
+        window_data['cluster'] = cluster
+        # Union between them
+        add_window_data(initial_clustering, window_data, segment, stream, target, ids, is_included=True)
+    elif merge_window_with_cluster:
         window_data, segment, stream, target, ids = find_window(list_of_windows, window_index)
         window_data['cluster'] = cluster
         # Union between them
