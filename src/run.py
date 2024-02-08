@@ -317,7 +317,7 @@ def experiment2():
 
 
 if __name__ == '__main__':
-    experiment1(type='original')
+    # experiment1(type='original')
     # experiment1(type='original_previous')
     # experiment1(type='continuous')
     # experiment1(type='continuous_previous')
