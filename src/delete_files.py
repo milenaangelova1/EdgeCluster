@@ -1,10 +1,10 @@
 import glob, os
 
 num_dimentions = 2 # 8 or 2
-folder = 'tabular' # plots or tabular
+folder = 'plots' # plots or tabular
 stream_number = 3 # 12 or 3
-file_extention = 'csv' # png or csv
-type = 'original_previous' # continuous or original or continuous_previous or original_previous, gas, elec, water, weather
+file_extention = 'png' # png or csv
+type = 'original' # continuous or original or continuous_previous or original_previous, gas, elec, water, weather
 
 # for stream_num in range(stream_number):
 for size in [3,4,6,8,12,24,30,32,48]:

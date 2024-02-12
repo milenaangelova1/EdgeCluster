@@ -55,7 +55,7 @@ class EdgeCluster:
             # cluster = temp_cluster
             
             temp_clustering = initial_clustering.copy()
-            # temp_clustering = remove_cluster_from_clustering(temp_clustering, cluster_for_removing = new_cluster)
+            temp_clustering = remove_cluster_from_clustering(temp_clustering, cluster_for_removing = cluster)
             
             # # while True:
             closed_cluster = find_the_closest_cluster(cluster, temp_clustering)
