@@ -1,29 +1,17 @@
+from src.colors import COLORS
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
-df = pd.DataFrame({"x": [10,3,1], "y": [12,4,2]})
-# def generate_check(df, high_vector, low_vector):
-#     columns = df.columns
-#     result = []
-   
-#     for column, h_vector, l_vector in zip(columns, high_vector, low_vector):
-#         calc = ((df[column] <= h_vector) & (df[column] >= l_vector))
-#         result.append(set(calc[~calc].index))
-        
-#     indexes = list(set.union(*result))
-#     return indexes
+df = pd.read_csv('/Users/milenaangelova/git-repo/EdgeCluster/notebooks/total.csv', encoding='utf-8')
+print(df.shape)
+# df = df[df['segment']<=num_segments]
 
-# generate_check(df, [7,5], [1,2])
+palette = sns.color_palette('deep', n_colors=len(set(df['cluster'])))
 
-high_vector = [7, 5]
-low_vector = [1,2]
-
-def compare(*args):
-    values = list(args)
-    if high_vector >= values <= low_vector:
-        return tuple(values)
-
-indexes = [] 
-for index, row in df.iterrows():
-    if high_vector <= list(row) >= low_vector:
-        indexes.append(index)
-print(indexes)
+sns.scatterplot(x=df['x'], y=df['y'], hue=df['cluster'], palette=palette)
+plt.xticks(np.arange(0, 1.1, 0.1))  
+plt.yticks(np.arange(0, 1.1, 0.1))
+plt.legend(loc='center left', bbox_to_anchor=(0.0, -0.3), ncol=5, borderaxespad=0, title='Clusters')
+plt.show()

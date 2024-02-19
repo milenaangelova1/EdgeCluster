@@ -5,7 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from utils import (draw_graph, 
+from utils import (draw_graph, get_coordinates, 
                    get_label, metrics_by_segments, 
                    summary, update_segments_dict, 
                    write_to_csv, 
@@ -58,12 +58,24 @@ def experiment_s1_data(num_segments, batch_size, type):
             batch_size=batch_size,
             path = ['..', 'results', 's1', f'{type}', 'plots'])
         
+        coordinates = get_coordinates(clustering['clustering'])
+        colors = list(map(lambda x: x['color'], coordinates))
+        color_min_1 = 'black'
+        color_min_2 = 'blue'
         d = initial_clustering['clustering'][0]['data']
-        palette = sns.color_palette('hls', n_colors=len(set(d['cluster'])))
-    
-        sns.scatterplot(x=d['x'], y=d['y'], hue=d['cluster'], palette=palette).set(title=f"Window {index}")
+        unique_clusters = set(d['cluster'])
+        sorted_clusters = sorted(list(unique_clusters))
+        if -1 in sorted_clusters:
+            colors.insert(0, color_min_1)
+        if -2 in sorted_clusters:
+            colors.insert(0, color_min_2)
+
+        palette = sns.color_palette(colors, n_colors=len(unique_clusters))
+        sns.scatterplot(x=d['x'], y=d['y'], hue=d['cluster'], palette=palette)
         plt.xticks(np.arange(0, 1.1, 0.1))  
         plt.yticks(np.arange(0, 1.1, 0.1))
+        # clusters = list(map(lambda x: f'Cluster {x}', sorted_clusters))
+        plt.legend(loc='center left', bbox_to_anchor=(0.0, -0.3), ncol=6, borderaxespad=0, title='Clusters')
         plt.savefig(os.path.join('results', 's1', f'{type}', 'plots', f'{batch_size}', f'scatter_clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}.png'))
         
         print(f"The graph for a window {index} was plotted")
@@ -245,7 +257,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
 
 def experiment1(type='continous'):
     size_windows = [3, 4, 6, 8, 12,24,30,32,48]   # number of samples in each window
-    # size_windows = [24]
+    size_windows = [8]
     start_time = time.time()
 
     # Experiment with S1 data
@@ -317,12 +329,12 @@ def experiment2():
 
 
 if __name__ == '__main__':
-    # experiment1(type='original')
+    experiment1(type='original')
     # experiment1(type='original_previous')
     # experiment1(type='continuous')
     # experiment1(type='continuous_previous')
 
-    experiment2()
+    # experiment2()
 
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data

@@ -244,7 +244,7 @@ def get_coordinates(clusters):
         top = bottom + height
 
         color = colors[cluster['cluster']]
-        coordinates.append({"left": left, "width": width, "bottom": bottom, "height": height, "right": right, "top": top, "mean": mean, "color": color})
+        coordinates.append({"left": left, "width": width, "bottom": bottom, "height": height, "right": right, "top": top, "mean": mean, "color": color, "cluster": cluster['cluster']})
     return coordinates
 
 def plot_rectangles(clusters: list):
@@ -329,7 +329,7 @@ def draw_graph(df_metrics, window_metrics, filename: str, title: str, xaxis_labe
 
     plt.xlabel(xaxis_label)
     plt.ylabel(yaxis_label)
-    plt.title(title)
+    # plt.title(title)
     plt.xticks(np.arange(0, 1.1, 0.1))
     plt.yticks(np.arange(0, 1.1, 0.1))
     
