@@ -328,13 +328,277 @@ def experiment2():
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
+def experiment_synthetic_tp_si_data(num_segments, batch_size, dataset_number, synthetic_type):
+    """
+    Experiment: runs Edge Cluster over Temporal SI data.
+    """
+    list_of_windows = pw.synthetic_temporal_SI(num_segments=num_segments, batch_size=batch_size, dataset_number=dataset_number, synthetic_type=synthetic_type)
+    initial_clustering = ic.synthetic_temp_si(size=batch_size, dataset_number=dataset_number, type_synthetic=synthetic_type)
+
+    # draw_graph(df_metrics = initial_clustering['clustering_metrics'],
+    #         window_metrics={},
+    #         filename='initial_clustering', 
+    #         title=f'Initial clustering of {synthetic_type} data', 
+    #         xaxis_label='Feature 1', 
+    #         yaxis_label='Feature 2', 
+    #         batch_size=batch_size,
+    #         path=['..', 'results', 's1', f'{type}', 'plots'],
+    #         initial_graph=True)
+    
+    # keep all the clustering solutions
+    # the latest one is the final one
+    list_of_clustering_solutions = []
+    dfs = []
+    segments = {
+        1: [],
+        2: [],
+        3: [],
+        4: []
+    }
+    for index, window in enumerate(list_of_windows['clustering_metrics']):
+        print(f"Start processing a window {index}")
+        clustering = EdgeCluster().fit(window, initial_clustering['clustering_metrics'])
+        move_data(initial_clustering, clustering, list_of_windows, index)
+        update_segments_dict(segments, window['segment'], initial_clustering)
+        print(f"The EdgeCluster completed for a window {index}")
+        print(f"Start plotting a graph for a window {index}")
+        # draw_graph(df_metrics = clustering,
+        #     window_metrics=[window],
+        #     filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
+        #     title=f'Clustering of S1 data for window {index}', 
+        #     xaxis_label='Feature 1', 
+        #     yaxis_label='Feature 2', 
+        #     batch_size=batch_size,
+        #     path = ['..', 'results', 's1', f'{type}', 'plots'])
+        
+        # coordinates = get_coordinates(clustering['clustering'])
+        # colors = list(map(lambda x: x['color'], coordinates))
+        # color_min_1 = 'black'
+        # color_min_2 = 'blue'
+        # d = initial_clustering['clustering'][0]['data']
+        # unique_clusters = set(d['cluster'])
+        # sorted_clusters = sorted(list(unique_clusters))
+        # if -1 in sorted_clusters:
+        #     colors.insert(0, color_min_1)
+        # if -2 in sorted_clusters:
+        #     colors.insert(0, color_min_2)
+
+        # palette = sns.color_palette(colors, n_colors=len(unique_clusters))
+        # sns.scatterplot(x=d['x'], y=d['y'], hue=d['cluster'], palette=palette)
+        # plt.xticks(np.arange(0, 1.1, 0.1))  
+        # plt.yticks(np.arange(0, 1.1, 0.1))
+        # # clusters = list(map(lambda x: f'Cluster {x}', sorted_clusters))
+        # plt.legend(loc='center left', bbox_to_anchor=(0.0, -0.3), ncol=6, borderaxespad=0, title='Clusters')
+        # plt.savefig(os.path.join('results', 's1', f'{type}', 'plots', f'{batch_size}', f'scatter_clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}.png'))
+        
+        # print(f"The graph for a window {index} was plotted")
+        list_of_clustering_solutions.append(clustering)
+        print(f"Summary for a window {index}")
+        df = summary(clustering)
+        print(f"Write a csv for a window {index}")
+        df['index'] = df.shape[0] * [index]
+        dfs.append(df)
+        write_to_csv(filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
+                     data=df,
+                     path = ['..', 'results', f'{synthetic_type}', f'{synthetic_type}_{dataset_number}', 'tabular', f'{batch_size}'])
+    
+    # write to csv - final clustering
+    final_df = preprocessing_final_dataset(initial_clustering['clustering'])
+    write_to_csv(filename='final_clustering', 
+                    data=final_df,
+                    path = ['..', 'results', f'{synthetic_type}', f'{synthetic_type}_{dataset_number}', 'tabular', f'{batch_size}'])
+    
+    # write to csv - final monitoring
+    monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
+    write_to_csv(filename='final_minitoring', 
+                    data=monitoring_df, 
+                    path = ['..', 'results', f'{synthetic_type}', f'{synthetic_type}_{dataset_number}', 'tabular', f'{batch_size}'])
+    
+    # calculate evaluation metrics
+    metrics, metrics_without = metrics_by_segments(segments, batch_size, 
+                                                   type='original', 
+                                                   path=['..', 'results', f'{synthetic_type}', f'{synthetic_type}_{dataset_number}', 'tabular', f'{batch_size}'],
+                                                   true_labels=True)
+    
+    return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
+
+def experiment_real_tp_si_data(num_segments, batch_size, dataset_number, synthetic_type):
+    """
+    Experiment: runs Edge Cluster over Temporal SI data.
+    """
+    list_of_windows = pw.real_temporal_SI(num_segments=num_segments, batch_size=batch_size, dataset_number=dataset_number, synthetic_type=synthetic_type)
+    initial_clustering = ic.real_temp_si(size=batch_size, dataset_number=dataset_number, type_synthetic=synthetic_type)
+
+    # draw_graph(df_metrics = initial_clustering['clustering_metrics'],
+    #         window_metrics={},
+    #         filename='initial_clustering', 
+    #         title=f'Initial clustering of {synthetic_type} data', 
+    #         xaxis_label='Feature 1', 
+    #         yaxis_label='Feature 2', 
+    #         batch_size=batch_size,
+    #         path=['..', 'results', f'{synthetic_type}', 'plots'],
+    #         initial_graph=True)
+    
+    # keep all the clustering solutions
+    # the latest one is the final one
+    list_of_clustering_solutions = []
+    dfs = []
+    segments = {
+        1: [],
+        2: [],
+        3: [],
+        4: []
+    }
+    for index, window in enumerate(list_of_windows['clustering_metrics']):
+        print(f"Start processing a window {index}")
+        clustering = EdgeCluster().fit(window, initial_clustering['clustering_metrics'])
+        move_data(initial_clustering, clustering, list_of_windows, index)
+        update_segments_dict(segments, window['segment'], initial_clustering)
+        print(f"The EdgeCluster completed for a window {index}")
+        print(f"Start plotting a graph for a window {index}")
+        # draw_graph(df_metrics = clustering,
+        #     window_metrics=[window],
+        #     filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
+        #     title=f'Clustering of S1 data for window {index}', 
+        #     xaxis_label='Feature 1', 
+        #     yaxis_label='Feature 2', 
+        #     batch_size=batch_size,
+        #     path = ['..', 'results', f'{synthetic_type}', 'plots'])
+        
+        # coordinates = get_coordinates(clustering['clustering'])
+        # colors = list(map(lambda x: x['color'], coordinates))
+        # color_min_1 = 'black'
+        # color_min_2 = 'blue'
+        # d = initial_clustering['clustering'][0]['data']
+        # unique_clusters = set(d['cluster'])
+        # sorted_clusters = sorted(list(unique_clusters))
+        # if -1 in sorted_clusters:
+        #     colors.insert(0, color_min_1)
+        # if -2 in sorted_clusters:
+        #     colors.insert(0, color_min_2)
+
+        # palette = sns.color_palette(colors, n_colors=len(unique_clusters))
+        # sns.scatterplot(x=d['0'], y=d['1'], hue=d['cluster'], palette=palette)
+        # plt.xticks(np.arange(0, 1.1, 0.1))  
+        # plt.yticks(np.arange(0, 1.1, 0.1))
+        # # clusters = list(map(lambda x: f'Cluster {x}', sorted_clusters))
+        # plt.legend(loc='center left', bbox_to_anchor=(0.0, -0.3), ncol=6, borderaxespad=0, title='Clusters')
+        # plt.savefig(os.path.join('results', f'{synthetic_type}', 'plots', f'{batch_size}', f'scatter_clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}.png'))
+        
+        print(f"The graph for a window {index} was plotted")
+        list_of_clustering_solutions.append(clustering)
+        print(f"Summary for a window {index}")
+        df = summary(clustering)
+        print(f"Write a csv for a window {index}")
+        df['index'] = df.shape[0] * [index]
+        dfs.append(df)
+        write_to_csv(filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
+                     data=df,
+                     path = ['..', 'results', f'{synthetic_type}', f'{synthetic_type}_{dataset_number}', 'tabular', f'{batch_size}'])
+    
+    # write to csv - final clustering
+    final_df = preprocessing_final_dataset(initial_clustering['clustering'])
+    write_to_csv(filename='final_clustering', 
+                    data=final_df,
+                    path = ['..', 'results', f'{synthetic_type}', f'{synthetic_type}_{dataset_number}', 'tabular', f'{batch_size}'])
+    
+    # write to csv - final monitoring
+    monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
+    write_to_csv(filename='final_minitoring', 
+                    data=monitoring_df, 
+                    path = ['..', 'results', f'{synthetic_type}', f'{synthetic_type}_{dataset_number}', 'tabular', f'{batch_size}'])
+    
+    # calculate evaluation metrics
+    metrics, metrics_without = metrics_by_segments(segments, batch_size, 
+                                                   type='original', 
+                                                   path=['..', 'results', f'{synthetic_type}', f'{synthetic_type}_{dataset_number}', 'tabular', f'{batch_size}'],
+                                                   true_labels=True)
+    
+    return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
+
+
+def experiment3(dataset_number = 0, type='base'):
+    size_windows = [3,4,6,8,12,24,30,32,48]   # number of samples in each window
+    # size_windows = [8]
+    start_time = time.time()
+
+    # Experiment with S1 data
+    final_data_metrics = []
+    final_data_metrics_without = []
+    for size in size_windows:
+        print(f"Starting size {size}")
+        _, metrics, metrics_without = experiment_synthetic_tp_si_data(num_segments=4, batch_size=size, dataset_number = dataset_number, synthetic_type=type)
+        metrics['size'] = metrics.shape[0] * [size]
+        metrics_without['size'] = metrics_without.shape[0] * [size]
+        final_data_metrics.append(metrics)
+        final_data_metrics_without.append(metrics_without)
+        write_to_csv(filename='metrics', 
+                data=metrics, 
+                path = ['..', 'results', f'{type}', f'{type}_{dataset_number}', 'tabular', f'{size}'])
+        write_to_csv(filename='metrics_without_deviation_and_matching', 
+                data=metrics_without, 
+                path = ['..', 'results', f'{type}', f'{type}_{dataset_number}', 'tabular', f'{size}'])
+    
+    final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
+    write_to_csv(filename='final_evalution_metrics', 
+                data=final_data_metrics_df, 
+                path = ['..', 'results', f'{type}', f'{type}_{dataset_number}', 'tabular'])
+    
+    final_data_metrics_df = pd.concat(final_data_metrics_without, ignore_index=True, sort=False)
+    write_to_csv(filename='final_evalution_metrics_without_deviation_and_matching', 
+                data=final_data_metrics_df, 
+                path = ['..', 'results', f'{type}', f'{type}_{dataset_number}', 'tabular'])
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+
+def experiment4(dataset_number = 0, type='base'):
+    size_windows = [3,4,6,8,12]   # number of samples in each window
+    # size_windows = [8]
+    start_time = time.time()
+
+    # Experiment with S1 data
+    final_data_metrics = []
+    final_data_metrics_without = []
+    for size in size_windows:
+        print(f"Starting size {size}")
+        _, metrics, metrics_without = experiment_real_tp_si_data(num_segments=4, batch_size=size, dataset_number = dataset_number, synthetic_type=type)
+        metrics['size'] = metrics.shape[0] * [size]
+        metrics_without['size'] = metrics_without.shape[0] * [size]
+        final_data_metrics.append(metrics)
+        final_data_metrics_without.append(metrics_without)
+        write_to_csv(filename='metrics', 
+                data=metrics, 
+                path = ['..', 'results', f'{type}', f'{type}_{dataset_number}', 'tabular', f'{size}'])
+        write_to_csv(filename='metrics_without_deviation_and_matching', 
+                data=metrics_without, 
+                path = ['..', 'results', f'{type}', f'{type}_{dataset_number}', 'tabular', f'{size}'])
+    
+    final_data_metrics_df = pd.concat(final_data_metrics, ignore_index=True, sort=False)
+    write_to_csv(filename='final_evalution_metrics', 
+                data=final_data_metrics_df, 
+                path = ['..', 'results', f'{type}', f'{type}_{dataset_number}', 'tabular'])
+    
+    final_data_metrics_df = pd.concat(final_data_metrics_without, ignore_index=True, sort=False)
+    write_to_csv(filename='final_evalution_metrics_without_deviation_and_matching', 
+                data=final_data_metrics_df, 
+                path = ['..', 'results', f'{type}', f'{type}_{dataset_number}', 'tabular'])
+    print("--- %s seconds ---" % (time.time() - start_time))
+
 if __name__ == '__main__':
-    experiment1(type='original')
+    # experiment1(type='original')
     # experiment1(type='original_previous')
     # experiment1(type='continuous')
     # experiment1(type='continuous_previous')
 
     # experiment2()
+
+    # Temporal SI experiment with synthetic data
+    # for i in range(0, 1):
+    #     experiment3(dataset_number=i, type='moving')
+
+    # Temporal SI experiment with real data
+    for i in range(0, 1):
+        experiment4(dataset_number=i, type='retail')
 
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data

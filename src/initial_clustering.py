@@ -242,3 +242,130 @@ def ampds(hour: int, type: str, size: int):
         "clustering_metrics": list_clusters_with_metrics
     }
 
+def synthetic_temp_si(size: int, dataset_number: int, type_synthetic='base'):
+    """
+    Preprocessing the synthetic data from Temporal SI paper.
+
+    :param: size
+
+    :returns: pre-processed synthetic data
+    """
+    clustering = []
+    # read the data 
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'dataS', f'{type_synthetic}', 'preprocessed', f'{type_synthetic}_{dataset_number}_0.csv'))
+    # the timestamps are ids for this data
+    ids = df['timestamps']
+    # only features without columns cluster and timestamps
+    df.drop(['timestamps'], axis=1, inplace=True)
+
+    clustering.append({
+        'data': df,
+        'segment': [0] * df.shape[0],
+        'stream': [-1] * df.shape[0],
+        'targets': list(df['cluster'].values),
+        'is_included': df.shape[0] * [True],
+        'ids': ids
+    })
+    df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', f'{type_synthetic}', f'{type_synthetic}_{dataset_number}', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
+    df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', f'{type_synthetic}', f'{type_synthetic}_{dataset_number}', 'tabular', f'{size}', f'initial_clustering_data.csv'))
+
+    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values, ids=ids)
+    metrics_df =  pd.DataFrame({
+            # 'connectivity': [metrics_dict['connectivity']],
+            'SI': [metrics_dict['SI']],
+            # 'S': [metrics_dict['S']],
+            # 'DB': [metrics_dict['DB']],
+            'TSI': [metrics_dict['TSI']],
+            'F1': [metrics_dict['F1']],
+            'JI': [metrics_dict['JI']]
+        })
+    write_to_csv(filename='initial_clustering_metrics', 
+                data=metrics_df, 
+                path = ['..', 'results', f'{type_synthetic}', f'{type_synthetic}_{dataset_number}', 'tabular', f'{size}'])
+
+    list_clusters_with_metrics = []
+    for cluster in clustering:
+        df = cluster['data']
+        cluster_labels = df['cluster'].unique()
+        for label in cluster_labels:
+            c = df[df['cluster'] == label]
+            # find the high, low and mean vectors of each cluster
+            cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
+            cluster_metrics['cluster'] = label
+            cluster_metrics['segment'] = cluster['segment']
+            cluster_metrics['stream'] = cluster['stream']
+            list_clusters_with_metrics.append(cluster_metrics)
+           
+    # calculate the high, low and mean of each window    
+    # save the data somewhere as files
+
+    clustering[0]['data']['is_included'] = clustering[0]['data'].shape[0] * [True]
+
+    return {
+        "clustering": clustering,
+        "clustering_metrics": list_clusters_with_metrics
+    }
+
+def real_temp_si(size: int, dataset_number: int, type_synthetic='base'):
+    """
+    Preprocessing the real data from Temporal SI paper.
+
+    :param: size
+
+    :returns: pre-processed real data
+    """
+    clustering = []
+    # read the data 
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'dataR', f'{type_synthetic}', 'preprocessed', f'{type_synthetic}_{dataset_number}_0.csv'))
+    # the timestamps are ids for this data
+    ids = df['timestamps']
+    # only features without columns cluster and timestamps
+    df.drop(['timestamps'], axis=1, inplace=True)
+
+    clustering.append({
+        'data': df,
+        'segment': [0] * df.shape[0],
+        'stream': [-1] * df.shape[0],
+        'targets': list(df['cluster'].values),
+        'is_included': df.shape[0] * [True],
+        'ids': ids
+    })
+    df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', f'{type_synthetic}', f'{type_synthetic}_{dataset_number}', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
+    df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', f'{type_synthetic}', f'{type_synthetic}_{dataset_number}', 'tabular', f'{size}', f'initial_clustering_data.csv'))
+
+    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values, ids=ids)
+    metrics_df =  pd.DataFrame({
+            # 'connectivity': [metrics_dict['connectivity']],
+            'SI': [metrics_dict['SI']],
+            # 'S': [metrics_dict['S']],
+            # 'DB': [metrics_dict['DB']],
+            'TSI': [metrics_dict['TSI']],
+            'F1': [metrics_dict['F1']],
+            'JI': [metrics_dict['JI']]
+        })
+    write_to_csv(filename='initial_clustering_metrics', 
+                data=metrics_df, 
+                path = ['..', 'results', f'{type_synthetic}', f'{type_synthetic}_{dataset_number}', 'tabular', f'{size}'])
+
+    list_clusters_with_metrics = []
+    for cluster in clustering:
+        df = cluster['data']
+        cluster_labels = df['cluster'].unique()
+        for label in cluster_labels:
+            c = df[df['cluster'] == label]
+            # find the high, low and mean vectors of each cluster
+            cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
+            cluster_metrics['cluster'] = label
+            cluster_metrics['segment'] = cluster['segment']
+            cluster_metrics['stream'] = cluster['stream']
+            list_clusters_with_metrics.append(cluster_metrics)
+           
+    # calculate the high, low and mean of each window    
+    # save the data somewhere as files
+
+    clustering[0]['data']['is_included'] = clustering[0]['data'].shape[0] * [True]
+
+    return {
+        "clustering": clustering,
+        "clustering_metrics": list_clusters_with_metrics
+    }
