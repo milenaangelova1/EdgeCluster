@@ -551,12 +551,10 @@ def experiment3(dataset_number = 0, type='base'):
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
-def experiment4(dataset_number = 0, type='base'):
-    size_windows = [3,4,6,8,12]   # number of samples in each window
-    # size_windows = [8]
+def experiment4():
+    size_windows = [3,4,6,8,12,24,30,32,48]   # number of samples in each window
     start_time = time.time()
 
-    # Experiment with S1 data
     final_data_metrics = []
     final_data_metrics_without = []
     for size in size_windows:
@@ -593,12 +591,10 @@ if __name__ == '__main__':
     # experiment2()
 
     # Temporal SI experiment with synthetic data
-    # for i in range(0, 1):
-    #     experiment3(dataset_number=i, type='moving')
+    experiment3()
 
     # Temporal SI experiment with real data
-    for i in range(0, 1):
-        experiment4(dataset_number=i, type='retail')
+    experiment4()
 
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data
