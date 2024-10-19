@@ -269,7 +269,7 @@ def initial_clustering(size: int, dataset_name: str):
     df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', f'{dataset_name}', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
     df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', f'{dataset_name}', 'tabular', f'{size}', f'initial_clustering_data.csv'))
 
-    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values, ids=ids)
+    metrics_dict = evalutation_report(data=df[df.columns[:-2]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values, ids=ids)
     metrics_df =  pd.DataFrame({
             # 'connectivity': [metrics_dict['connectivity']],
             'SI': [metrics_dict['SI']],

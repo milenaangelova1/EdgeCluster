@@ -329,7 +329,7 @@ def experiment2():
 
 def experiment_real_data(num_segments, batch_size, dataset_name):
     """
-    Experiment: runs Edge Cluster over Temporal SI data.
+    Experiment: runs Edge Cluster over real data.
     """
     list_of_windows = pw.create_windows(num_segments=num_segments, batch_size=batch_size, dataset_name=dataset_name)
     initial_clustering = ic.initial_clustering(size=batch_size, dataset_name=dataset_name)
