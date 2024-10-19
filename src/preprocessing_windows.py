@@ -157,10 +157,9 @@ def ampds(hour: int, type: str, num_segments: int, batch_size: int):
         "clustering_metrics": list_clusters_with_metrics
     }
 
-
-def synthetic_temporal_SI(num_segments: int, batch_size: int, dataset_number: int, synthetic_type:str):
+def create_windows(num_segments: int, batch_size: int, dataset_name):
     """
-    Preprocessing the synthetic data from Temporal SI paper.
+    Create windows
 
     :param: num_segments
     :param: batch_size
@@ -171,57 +170,7 @@ def synthetic_temporal_SI(num_segments: int, batch_size: int, dataset_number: in
     
     # read the data
     for segment in range(1, num_segments + 1):
-        df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'dataS', f'{synthetic_type}', 'preprocessed', f'{synthetic_type}_{dataset_number}_{segment}.csv'))
-
-        if batch_size:
-            for index in range(0, df.shape[0], batch_size):
-                new_df = df.iloc[index:index + batch_size, :]
-                clustering.append({
-                    'data': new_df.drop(['cluster', 'timestamps'], axis=1),
-                    'stream': -1,
-                    'segment': segment,
-                    'target': list(new_df['cluster'].values),
-                    'is_included': [False] * new_df.shape[0],
-                    'ids': list(new_df['timestamps'].values)
-                })
-        else:
-            clustering.append({
-                'data': df.drop(['cluster'], axis=1),
-                'segment': segment,
-                'target': df['cluster']
-            })
-    
-    list_clusters_with_metrics = []
-    for cluster in clustering:
-        df = cluster['data']
-        # find the high, low and mean vectors of each dataframe
-        cluster_metrics = calculate_hyper_rectangle_features(df)
-        cluster_metrics['segment'] = cluster['segment']
-        cluster_metrics['stream'] = cluster['stream']
-        list_clusters_with_metrics.append(cluster_metrics)
-
-    # calculate the high, low and mean of each window    
-    # save the data somewhere as files
-
-    return {
-        "clustering": clustering,
-        "clustering_metrics": list_clusters_with_metrics
-    }
-
-def real_temporal_SI(num_segments: int, batch_size: int, dataset_number: int, synthetic_type:str):
-    """
-    Preprocessing the synthetic data from Temporal SI paper.
-
-    :param: num_segments
-    :param: batch_size
-
-    :returns: pre-processed synthetic data
-    """
-    clustering = []
-    
-    # read the data
-    for segment in range(1, num_segments + 1):
-        df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', 'dataR', f'{synthetic_type}', 'preprocessed', f'{synthetic_type}_{dataset_number}_{segment}.csv'))
+        df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', f'{dataset_name}', 'preprocessed', f'{dataset_name}_{segment}.csv'))
 
         if batch_size:
             for index in range(0, df.shape[0], batch_size):
