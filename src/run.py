@@ -337,12 +337,11 @@ def experiment_real_data(num_segments, batch_size, dataset_name):
     # the latest one is the final one
     list_of_clustering_solutions = []
     dfs = []
-    segments = {
-        1: [],
-        2: [],
-        3: [],
-        4: []
-    }
+    segments = {}
+    
+    for segment in range(1, num_segments):
+        segments[segment] = []
+
     for index, window in enumerate(list_of_windows['clustering_metrics']):
         print(f"Start processing a window {index}")
         clustering = EdgeCluster().fit(window, initial_clustering['clustering_metrics'])
@@ -380,7 +379,7 @@ def experiment_real_data(num_segments, batch_size, dataset_name):
     
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
-def experiment3(dataset_name):
+def experiment3(dataset_name, num_segments):
     size_windows = [3,4,6,8,12,24,30,32,48]   # number of samples in each window
     start_time = time.time()
 
@@ -388,7 +387,7 @@ def experiment3(dataset_name):
     final_data_metrics_without = []
     for size in size_windows:
         print(f"Starting size {size}")
-        _, metrics, metrics_without = experiment_real_data(num_segments=4, batch_size=size, dataset_name=dataset_name)
+        _, metrics, metrics_without = experiment_real_data(num_segments=num_segments, batch_size=size, dataset_name=dataset_name)
         metrics['size'] = metrics.shape[0] * [size]
         metrics_without['size'] = metrics_without.shape[0] * [size]
         final_data_metrics.append(metrics)
@@ -420,8 +419,8 @@ if __name__ == '__main__':
     # experiment2()
 
     # Experiment with covertype and kddcup
-    experiment3(dataset_name='covertype')
-    experiment3(dataset_name='kddcup')
+    experiment3(dataset_name='covertype', num_segments=49)
+    experiment3(dataset_name='kddcup', num_segments=49)
 
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data
