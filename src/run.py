@@ -380,7 +380,7 @@ def experiment_real_data(num_segments, batch_size, dataset_name):
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
 def experiment3(dataset_name, num_segments):
-    size_windows = [3,4,6,8,12,24,30,32,48]   # number of samples in each window
+    size_windows = [48]   # number of samples in each window
     start_time = time.time()
 
     final_data_metrics = []
