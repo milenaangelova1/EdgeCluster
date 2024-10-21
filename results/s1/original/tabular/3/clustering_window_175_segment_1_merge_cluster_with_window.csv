@@ -1,2 +1,3 @@
-closed cluster high,closed cluster low,closed cluster mean,closed cluster label,closed cluster segment,closed cluster stream,cluster high,cluster low,cluster mean,cluster label,cluster segment,cluster stream,window high,window low,window mean,window segment,window stream,is the cluster and the window deviated,is the cluster and the window matched,cluster labels that are merged together into a cluster,new clusters (labels),merge a cluster with a window,merge a window with a cluster,index
-[0.96308204 0.88049498],[0.32816235 0.03259337],[0.6456222  0.45654417],5,1,-1,[0.96308204 0.88049498],[0.32816235 0.03259337],[0.6456222  0.45654417],1,-1,5,[0.92692513 0.13643891],[0.87199241 0.0724059 ],[0.89945877 0.10442241],1,-1,False,False,[],[],False,True,175
+version https://git-lfs.github.com/spec/v1
+oid sha256:bc0978f46fd14c418e546538f057564ebc3bd136c36f78bc3d6ec4ec113d2c87
+size 760
