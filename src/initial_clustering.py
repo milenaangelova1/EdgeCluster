@@ -254,7 +254,8 @@ def initial_clustering(size: int, dataset_name: str):
     clustering = []
     # read the data 
     df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'data', f'{dataset_name}', 'preprocessed', f'{dataset_name}_0.csv'))
-   
+    ids = df['timestamps']
+    df = df.drop(['timestamps'], axis=1)
 
     clustering.append({
         'data': df,
@@ -262,12 +263,12 @@ def initial_clustering(size: int, dataset_name: str):
         'stream': [-1] * df.shape[0],
         'targets': list(df['cluster'].values),
         'is_included': df.shape[0] * [True],
-        'ids': list(df['timestamps'].values)
+        'ids': list(ids.values)
     })
     df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', f'{dataset_name}', 'tabular', f'{size}', f'initial_clustering_value_counts.csv'))
     df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', f'{dataset_name}', 'tabular', f'{size}', f'initial_clustering_data.csv'))
 
-    metrics_dict = evalutation_report(data=df[df.columns[:-2]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values, ids=df['timestamps'].values)
+    metrics_dict = evalutation_report(data=df[df.columns[:-2]], pred_labels=df['cluster'].values, true_labels=df['cluster'].values, ids=ids.values)
     metrics_df =  pd.DataFrame({
             # 'connectivity': [metrics_dict['connectivity']],
             'SI': [metrics_dict['SI']],
@@ -288,7 +289,7 @@ def initial_clustering(size: int, dataset_name: str):
         for label in cluster_labels:
             c = df[df['cluster'] == label]
             # find the high, low and mean vectors of each cluster
-            cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster', 'timestamps'], axis=1))
+            cluster_metrics = calculate_hyper_rectangle_features(c.drop(['cluster'], axis=1))
             cluster_metrics['cluster'] = label
             cluster_metrics['segment'] = cluster['segment']
             cluster_metrics['stream'] = cluster['stream']
