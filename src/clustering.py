@@ -1,6 +1,9 @@
 import numpy as np
 from sklearn.metrics import pairwise_distances
 
+def main():
+	pass
+	
 def kmedoids(D, k, medoids=None, tmax=100):
     '''
         D is the dissimilarity matrix of the data to be clustered

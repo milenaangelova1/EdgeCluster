@@ -22,15 +22,15 @@ def experiment_s1_data(num_segments, batch_size, type):
     list_of_windows = pw.s1(num_segments=num_segments, batch_size=batch_size, type=type.split("_")[0])
     initial_clustering = ic.s1(size=batch_size, type=type.split("_")[0])
 
-    draw_graph(df_metrics = initial_clustering['clustering_metrics'],
-            window_metrics={},
-            filename='initial_clustering', 
-            title='Initial clustering of S1 data', 
-            xaxis_label='Feature 1', 
-            yaxis_label='Feature 2', 
-            batch_size=batch_size,
-            path=['..', 'results', 's1', f'{type}', 'plots'],
-            initial_graph=True)
+    # draw_graph(df_metrics = initial_clustering['clustering_metrics'],
+    #         window_metrics={},
+    #         filename='initial_clustering', 
+    #         title='Initial clustering of S1 data', 
+    #         xaxis_label='Feature 1', 
+    #         yaxis_label='Feature 2', 
+    #         batch_size=batch_size,
+    #         path=['..', 'results', 's1', f'{type}', 'plots'],
+    #         initial_graph=True)
     
     # keep all the clustering solutions
     # the latest one is the final one
@@ -49,45 +49,45 @@ def experiment_s1_data(num_segments, batch_size, type):
         update_segments_dict(segments, window['segment'], initial_clustering)
         print(f"The EdgeCluster completed for a window {index}")
         print(f"Start plotting a graph for a window {index}")
-        draw_graph(df_metrics = clustering,
-            window_metrics=[window],
-            filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
-            title=f'Clustering of S1 data for window {index}', 
-            xaxis_label='Feature 1', 
-            yaxis_label='Feature 2', 
-            batch_size=batch_size,
-            path = ['..', 'results', 's1', f'{type}', 'plots'])
+        # draw_graph(df_metrics = clustering,
+        #     window_metrics=[window],
+        #     filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
+        #     title=f'Clustering of S1 data for window {index}', 
+        #     xaxis_label='Feature 1', 
+        #     yaxis_label='Feature 2', 
+        #     batch_size=batch_size,
+        #     path = ['..', 'results', 's1', f'{type}', 'plots'])
         
-        coordinates = get_coordinates(clustering['clustering'])
-        colors = list(map(lambda x: x['color'], coordinates))
-        color_min_1 = 'black'
-        color_min_2 = 'blue'
-        d = initial_clustering['clustering'][0]['data']
-        unique_clusters = set(d['cluster'])
-        sorted_clusters = sorted(list(unique_clusters))
-        if -1 in sorted_clusters:
-            colors.insert(0, color_min_1)
-        if -2 in sorted_clusters:
-            colors.insert(0, color_min_2)
+        # coordinates = get_coordinates(clustering['clustering'])
+        # colors = list(map(lambda x: x['color'], coordinates))
+        # color_min_1 = 'black'
+        # color_min_2 = 'blue'
+        # d = initial_clustering['clustering'][0]['data']
+        # unique_clusters = set(d['cluster'])
+        # sorted_clusters = sorted(list(unique_clusters))
+        # if -1 in sorted_clusters:
+        #     colors.insert(0, color_min_1)
+        # if -2 in sorted_clusters:
+        #     colors.insert(0, color_min_2)
 
-        palette = sns.color_palette(colors, n_colors=len(unique_clusters))
-        sns.scatterplot(x=d['x'], y=d['y'], hue=d['cluster'], palette=palette)
-        plt.xticks(np.arange(0, 1.1, 0.1))  
-        plt.yticks(np.arange(0, 1.1, 0.1))
-        # clusters = list(map(lambda x: f'Cluster {x}', sorted_clusters))
-        plt.legend(loc='center left', bbox_to_anchor=(0.0, -0.3), ncol=6, borderaxespad=0, title='Clusters')
-        plt.savefig(os.path.join('results', 's1', f'{type}', 'plots', f'{batch_size}', f'scatter_clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}.png'))
+        # palette = sns.color_palette(colors, n_colors=len(unique_clusters))
+        # sns.scatterplot(x=d['x'], y=d['y'], hue=d['cluster'], palette=palette)
+        # plt.xticks(np.arange(0, 1.1, 0.1))  
+        # plt.yticks(np.arange(0, 1.1, 0.1))
+        # # clusters = list(map(lambda x: f'Cluster {x}', sorted_clusters))
+        # plt.legend(loc='center left', bbox_to_anchor=(0.0, -0.3), ncol=6, borderaxespad=0, title='Clusters')
+        # plt.savefig(os.path.join('results', 's1', f'{type}', 'plots', f'{batch_size}', f'scatter_clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}.png'))
         
         print(f"The graph for a window {index} was plotted")
         list_of_clustering_solutions.append(clustering)
-        print(f"Summary for a window {index}")
-        df = summary(clustering)
-        print(f"Write a csv for a window {index}")
-        df['index'] = df.shape[0] * [index]
-        dfs.append(df)
-        write_to_csv(filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
-                     data=df,
-                     path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
+        # print(f"Summary for a window {index}")
+        # df = summary(clustering)
+        # print(f"Write a csv for a window {index}")
+        # df['index'] = df.shape[0] * [index]
+        # dfs.append(df)
+        # write_to_csv(filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
+        #              data=df,
+        #              path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
     
     # write to csv - final clustering
     final_df = preprocessing_final_dataset(initial_clustering['clustering'])
@@ -96,10 +96,10 @@ def experiment_s1_data(num_segments, batch_size, type):
                     path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
     
     # write to csv - final monitoring
-    monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
-    write_to_csv(filename='final_minitoring', 
-                    data=monitoring_df, 
-                    path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
+    # monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
+    # write_to_csv(filename='final_minitoring', 
+    #                 data=monitoring_df, 
+    #                 path = ['..', 'results', 's1', f'{type}', 'tabular', f'{batch_size}'])
     
     # calculate evaluation metrics
     metrics, metrics_without = metrics_by_segments(segments, batch_size, 
@@ -230,7 +230,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
         df = summary(clustering)
         print(f"Write a csv for a window {index}")
         df['index'] = df.shape[0] * [index]
-        dfs.append(df)
+        # dfs.append(df)
         write_to_csv(filename=f'clustering_window_{index}_{hour}H_{type}_{get_label(clustering)}', 
                     data=df,
                     path = ['..', 'results', 'ampds', f'{type}', f'{batch_size}', 'tabular'])
@@ -242,10 +242,10 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
                     path = ['..', 'results', 'ampds', f'{type}', f'{batch_size}','tabular'])
     
     # write to csv - final monitoring
-    monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
-    write_to_csv(filename='final_minitoring', 
-                    data=monitoring_df, 
-                    path = ['..', 'results', 'ampds', f'{type}', f'{batch_size}', 'tabular'])
+    # monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
+    # write_to_csv(filename='final_minitoring', 
+    #                 data=monitoring_df, 
+    #                 path = ['..', 'results', 'ampds', f'{type}', f'{batch_size}', 'tabular'])
     # calculate evaluation metrics
     metrics, metrics_without = metrics_by_segments(segments, batch_size, 
                                                    type='original', 
@@ -256,7 +256,7 @@ def experiment_ampds2_data(hour, type, num_segments: int, batch_size: int, metri
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
 def experiment1(type='continous'):
-    size_windows = [3, 4, 6, 8, 12,24,30,32,48]   # number of samples in each window
+    # size_windows = [3, 4, 6, 8, 12,24,30,32,48]   # number of samples in each window
     size_windows = [8]
     start_time = time.time()
 
@@ -292,13 +292,14 @@ def experiment2():
     # Experiment with AMPDS2 dataset
     start_time = time.time()
     
-    types = ['gas', 'water', 'elec', 'weather']
-    # types = ['gas']
-    hours = [6, 8, 4, 4]
-    # hours = [6]
-    size_windows = [3, 5, 7] # daily profiles
-    # size_windows = [7]
-    metrics = ['euclidean', 'euclidean', 'euclidean', 'canberra']
+    # types = ['gas', 'water', 'elec', 'weather']
+    types = ['elec']
+    # hours = [6, 8, 4, 4]
+    hours = [4]
+    # size_windows = [3, 5, 7] # daily profiles
+    size_windows = [3]
+    # metrics = ['euclidean', 'euclidean', 'euclidean', 'canberra']
+    metrics = ['euclidean']
 
     final_data_metrics = []
     final_data_metrics_without = []
@@ -349,15 +350,15 @@ def experiment_real_data(num_segments, batch_size, dataset_name):
         update_segments_dict(segments, window['segment'], initial_clustering)
         print(f"The EdgeCluster completed for a window {index}")
         
-        list_of_clustering_solutions.append(clustering)
-        print(f"Summary for a window {index}")
-        df = summary(clustering)
-        print(f"Write a csv for a window {index}")
-        df['index'] = df.shape[0] * [index]
-        dfs.append(df)
-        write_to_csv(filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
-                     data=df,
-                     path = ['..', 'results', f'{dataset_name}', 'tabular', f'{batch_size}'])
+        # list_of_clustering_solutions.append(clustering)
+        # print(f"Summary for a window {index}")
+        # df = summary(clustering)
+        # # print(f"Write a csv for a window {index}")
+        # df['index'] = df.shape[0] * [index]
+        # dfs.append(df)
+        # write_to_csv(filename=f'clustering_window_{index}_segment_{window["segment"]}_{get_label(clustering)}', 
+        #              data=df,
+        #              path = ['..', 'results', f'{dataset_name}', 'tabular', f'{batch_size}'])
     
     # write to csv - final clustering
     final_df = preprocessing_final_dataset(initial_clustering['clustering'])
@@ -366,10 +367,10 @@ def experiment_real_data(num_segments, batch_size, dataset_name):
                     path = ['..', 'results', f'{dataset_name}', 'tabular', f'{batch_size}'])
     
     # write to csv - final monitoring
-    monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
-    write_to_csv(filename='final_minitoring', 
-                    data=monitoring_df, 
-                    path = ['..', 'results', f'{dataset_name}', 'tabular', f'{batch_size}'])
+    # monitoring_df = pd.concat(dfs, ignore_index=True, sort=False)
+    # write_to_csv(filename='final_minitoring', 
+    #                 data=monitoring_df, 
+    #                 path = ['..', 'results', f'{dataset_name}', 'tabular', f'{batch_size}'])
     
     # calculate evaluation metrics
     metrics, metrics_without = metrics_by_segments(segments, batch_size, 
@@ -380,7 +381,7 @@ def experiment_real_data(num_segments, batch_size, dataset_name):
     return list_of_clustering_solutions, pd.concat(metrics, ignore_index=True, sort=False), pd.concat(metrics_without, ignore_index=True, sort=False)
 
 def experiment3(dataset_name, num_segments):
-    size_windows = [12]   # number of samples in each window
+    size_windows = [32]   # number of samples in each window
     start_time = time.time()
 
     final_data_metrics = []
@@ -416,11 +417,11 @@ if __name__ == '__main__':
     # experiment1(type='continuous')
     # experiment1(type='continuous_previous')
 
-    # experiment2()
+    experiment2()
 
     # Experiment with covertype and kddcup
     # experiment3(dataset_name='covertype', num_segments=49)
-    experiment3(dataset_name='kddcup', num_segments=49)
+    # experiment3(dataset_name='kddcup', num_segments=11)
 
     # Experiment with synthetic data
     # Experiment 3-streams with 2-dimensional data

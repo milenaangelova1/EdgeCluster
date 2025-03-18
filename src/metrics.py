@@ -16,6 +16,13 @@ from sklearn.metrics import (pairwise_distances, homogeneity_score, silhouette_s
 
 from scipy.spatial import distance
 from scipy.stats import median_abs_deviation
+from copy import deepcopy
+
+def find_centroids(data, labels):
+    _data = deepcopy(data)
+    _data['cluster'] = labels
+    centroids = _data.groupby('cluster').mean()
+    return centroids
 
 def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean', ids=None):
     F1 = None
@@ -35,16 +42,32 @@ def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean', id
     JI = None
     ICav = None
     TS = None
-    distances = calculate_distances(data.to_numpy(copy=True), metric)
+    # distances = calculate_distances(data.to_numpy(copy=True), metric)
     # connectivity = calculate_connectivity(data, 
     #                                     pred_labels,
     #                                     [x for x in range(data.shape[1])],
     #                                     5, distance_matrix=distances)['CONN'].sum()
     if len(set(pred_labels)) > 1:
-        SI = calculate_silhouette(distances, pred_labels)
-        # s = calinski_harabasz_score(data, pred_labels)
-        # DB = davies_bouldin_score(data, pred_labels)
+        # SI = calculate_silhouette(distances, pred_labels)
+        SI = silhouette_score(data, pred_labels, n_jobs=-1)
+        s = calinski_harabasz_score(data, pred_labels)
+        DB = davies_bouldin_score(data, pred_labels)
     # ICav = IC_av(distances, pred_labels)
+
+    _,coeff, TS = tempsil(ids,data.values,true_labels,s=100,kn=1000,c=1)
+    centroids = find_centroids(data, pred_labels)
+    ssq = calculate_ssq(data_points=data, centroids=centroids, labels=pred_labels)     
+
+    if len(true_labels) > 1:
+        _homogeneity_score = homogeneity_score(true_labels, pred_labels)
+        RI = rand_score(true_labels, pred_labels)
+        ARI = adjusted_rand_score(true_labels, pred_labels)
+        # MI = mutual_info_score(true_labels, pred_labels)
+        # NMI = normalized_mutual_info_score(true_labels, pred_labels)
+        AMI = adjusted_mutual_info_score(true_labels, pred_labels)
+        # CS = completeness_score(true_labels, pred_labels)
+        # V = v_measure_score(true_labels, pred_labels, beta=1.0)
+        # FMI = fowlkes_mallows_score(true_labels, pred_labels)
 
     if ids is not None:
         data['cluster'] = pred_labels
@@ -53,36 +76,25 @@ def evalutation_report(data, pred_labels, true_labels=[], metric='euclidean', id
         F1 = cluster_wise_f_measure(data)
         JI = cluster_wise_jaccard(data)
     
-    # _,coeff, TS = tempsil(ids,data,list(true_labels),s=100,kn=1000,c=1)
-
-    if len(true_labels) > 1:
-        _homogeneity_score = homogeneity_score(true_labels, pred_labels)
-        # RI = rand_score(true_labels, pred_labels)
-        # ARI = adjusted_rand_score(true_labels, pred_labels)
-        # MI = mutual_info_score(true_labels, pred_labels)
-        # NMI = normalized_mutual_info_score(true_labels, pred_labels)
-        # AMI = adjusted_mutual_info_score(true_labels, pred_labels)
-        # CS = completeness_score(true_labels, pred_labels)
-        # V = v_measure_score(true_labels, pred_labels, beta=1.0)
-        # FMI = fowlkes_mallows_score(true_labels, pred_labels)
     return {
-        # "connectivity": connectivity, 
+        "connectivity": connectivity, 
         "F1": F1, 
         "SI": SI, 
         "homogeneity":_homogeneity_score,
-        # "RI": RI,
-        # "ARI": ARI,
+        "RI": RI,
+        "ARI": ARI,
         # "MI": MI,
         # "NMI": NMI,
-        # "AMI": AMI,
+        "AMI": AMI,
         # "CS": CS,
         # "V": V,
         # "FMI": FMI,
-        # "S": s,
-        # "DB": DB,
+        "s": s,
+        "DB": DB,
         "JI": JI,
-        "IC_av": ICav,
-        "TSI": TS
+        # "IC_av": ICav,
+        "TSI": TS,
+        "ssq": ssq
     }
 
 # F1
@@ -505,3 +517,99 @@ def tempsil(t,x,l,s=200,kn=200,c=1):
     TS = np.sqrt(np.abs(TS2)) * np.sign(TS2)
     return k,ts2,TS
 
+# def calculate_ssq(data_points, centroids, labels):
+#     """
+#     Calculate the Sum of Squared Distances (SSQ).
+
+#     Parameters:
+#     - data_points: A 2D numpy array where each row represents a data point.
+#     - centroids: A 2D numpy array where each row represents a cluster centroid.
+#     - labels: A 1D numpy array where each entry represents the cluster index for the corresponding data point.
+
+#     Returns:
+#     - SSQ: The sum of squared distances from each data point to its assigned centroid.
+#     """
+#     ssq = 0.0
+#     unique_labels = list(set(labels))
+#     data_points['cluster'] = labels
+
+#     for cluster in unique_labels:
+#         squared_distance = 0
+#         # Get the assigned cluster centroid
+#         centroid = centroids.loc[cluster].values
+#         points = data_points[data_points['cluster']==cluster].drop(['cluster'], axis=1).values
+#         # Calculate the squared distance between the data point and the centroid
+#         for p in points:
+#             squared_distance += np.sum((p - centroid) ** 2)
+#         # Add to the total SSQ
+#         ssq += squared_distance
+    
+#     return ssq
+
+# import numpy as np
+# import pandas as pd
+
+def calculate_ssq(data_points, centroids, labels):
+    """
+    Calculate the Sum of Squared Distances (SSQ).
+
+    Parameters:
+    - data_points: A pandas DataFrame where each row represents a data point.
+    - centroids: A pandas DataFrame where each row represents a cluster centroid.
+    - labels: A 1D numpy array where each entry represents the cluster index for the corresponding data point.
+
+    Returns:
+    - SSQ: The sum of squared distances from each data point to its assigned centroid.
+    """
+    ssq = 0.0
+    data_points = data_points.copy()  # Avoid modifying the original DataFrame
+    data_points['cluster'] = labels
+
+    unique_labels = data_points['cluster'].unique()
+
+    for cluster in unique_labels:
+        # Get the assigned cluster centroid
+        centroid = centroids.loc[cluster].values
+        # Get points in this cluster
+        points = data_points[data_points['cluster'] == cluster].drop(columns=['cluster']).values
+        # Calculate the squared distance between the data points and the centroid
+        squared_distance = np.sum((points - centroid) ** 2)
+        # Add to the total SSQ
+        ssq += squared_distance
+
+    return ssq
+
+
+
+def calculate_ssq(data_points, centroids, labels):
+    """
+    Calculate the Sum of Squared Distances (SSQ).
+
+    Parameters:
+    - data_points: A pandas DataFrame where each row represents a data point.
+    - centroids: A pandas DataFrame where each row represents a cluster centroid.
+    - labels: A 1D numpy array where each entry represents the cluster index for the corresponding data point.
+
+    Returns:
+    - SSQ: The sum of squared distances from each data point to its assigned centroid.
+    """
+    ssq = 0.0
+    data_points = data_points.copy()  # Avoid modifying the original DataFrame
+    data_points['cluster'] = labels
+
+    unique_labels = data_points['cluster'].unique()
+    _data_points = data_points.drop(['cluster'], axis=1).values
+    for i in range(len(_data_points)):
+        min_distance = 1.7976931348623157e+308
+        for c in range(len(unique_labels)):
+            distance = 0
+            centroid = centroids.loc[unique_labels[c]].values
+            # for p in range(len(centroid)):
+            #     d = _data_points[i][p] - centroid[p]
+            #     distance += d * d
+
+            distance = np.sum((_data_points[i] - centroid) ** 2)
+            min_distance = min(distance, min_distance)
+        ssq+=min_distance
+
+    return ssq

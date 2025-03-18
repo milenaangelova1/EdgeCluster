@@ -41,10 +41,13 @@ def s1(size: int, type):
     metrics_df =  pd.DataFrame({
             # 'connectivity': [metrics_dict['connectivity']],
             'SI': [metrics_dict['SI']],
-            # 'S': [metrics_dict['S']],
+            's': [metrics_dict['s']],
             # 'DB': [metrics_dict['DB']],
+            'RI': [metrics_dict['RI']],
+            'TSI': [metrics_dict['TSI']],
             'F1': [metrics_dict['F1']],
-            'JI': [metrics_dict['JI']]
+            'JI': [metrics_dict['JI']],
+            'ssq': [metrics_dict['ssq']]
         })
     write_to_csv(filename='initial_clustering_metrics', 
                 data=metrics_df, 
@@ -96,7 +99,7 @@ def synthetic(num_dimentions=2, stream_number=0, size=3):
     df['cluster'].value_counts().reset_index().to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{size}', f'initial_clustering_value_counts.csv'))
     df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'results', 'synthetic', f'{num_dimentions}-dim', 'tabular', f'stream {stream_number}', f'{size}', f'initial_clustering_data.csv'))
 
-    metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values)
+    metrics_dict = evalutation_report(data=df[df.columns[:-3]], pred_labels=df['cluster'].values)
     metrics_df =  pd.DataFrame({
             # 'connectivity': [metrics_dict["connectivity"]],
             'SI': [metrics_dict["SI"]],
@@ -216,7 +219,8 @@ def ampds(hour: int, type: str, size: int):
     metrics_dict = evalutation_report(data=df[df.columns[:-1]], pred_labels=df['cluster'].values)
     metrics_df =  pd.DataFrame({
             'SI': [metrics_dict['SI']],
-            'IC_av': [metrics_dict['IC_av']]
+            # 'IC_av': [metrics_dict['IC_av']],
+            'ssq': [metrics_dict['ssq']]
         })
     write_to_csv(filename='initial_clustering_metrics', 
                 data=metrics_df, 
@@ -272,11 +276,13 @@ def initial_clustering(size: int, dataset_name: str):
     metrics_df =  pd.DataFrame({
             # 'connectivity': [metrics_dict['connectivity']],
             'SI': [metrics_dict['SI']],
-            # 'S': [metrics_dict['S']],
+            's': [metrics_dict['s']],
             # 'DB': [metrics_dict['DB']],
             'TSI': [metrics_dict['TSI']],
             'F1': [metrics_dict['F1']],
-            'JI': [metrics_dict['JI']]
+            'JI': [metrics_dict['JI']],
+            'RI': [metrics_dict['RI']],
+            'ssq': [metrics_dict['ssq']]
         })
     write_to_csv(filename='initial_clustering_metrics', 
                 data=metrics_df, 
