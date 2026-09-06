@@ -1,4 +1,4 @@
-# FedCluLearn
+# EdgeCluster
 This is the code repository that was developed for the paper "EdgeCluster: An Evolving Data Stream Clustering at the Edge".
 
 # Requirements
